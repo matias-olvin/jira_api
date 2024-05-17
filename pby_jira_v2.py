@@ -3,9 +3,8 @@ import os
 
 import requests
 from airflow.models import BaseOperator
-from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
-
+from requests.auth import HTTPBasicAuth
 
 PROJECT = "DATA"
 PBY_JIRA_URL = "https://passby.atlassian.net"
@@ -104,7 +103,7 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
             )
 
         print(f"Successfully created issue: {response.text}")
-        
+
         # push to xcom
         self.xcom_push(context, key="response", value=response.text)
 
@@ -127,7 +126,7 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
             if issue["name"] == issue_type:
                 return issue["id"]
 
-        issue_types_list_string = '\n'.join([issue['name'] for issue in issue_types])
+        issue_types_list_string = "\n".join([issue["name"] for issue in issue_types])
 
         error_message = f"""Issue type '{issue_type}' not found. Available issue types: {issue_types_list_string}"""
 
