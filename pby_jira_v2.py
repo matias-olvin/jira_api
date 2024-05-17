@@ -54,14 +54,15 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
         api_token = os.getenv("API_TOKEN")
         if not api_token:
             raise ValueError("API_TOKEN environment variable not set")
-
-        self.api_token = api_token
+        else:
+            self.api_token = api_token
 
         # Validate the assignee
         if "@" not in assignee:
             raise ValueError("Invalid assignee. Assignee should be an email address")
-
-        self.assignee = assignee
+        else:
+            self.assignee = assignee
+        
         self.issue_type = issue_type
 
         super(PassbyJiraCreateIssueOperator, self).__init__(*args, **kwargs)
