@@ -4,10 +4,22 @@ import os
 import requests
 from airflow.models import BaseOperator
 from requests.auth import HTTPBasicAuth
+from dotenv import load_dotenv
+
 
 PROJECT = "DATA"
 PBY_JIRA_URL = "https://passby.atlassian.net"
 ADMIN_USERNAME = "matias@passby.com"
+COOL_TEXT = """
+    ____     ___    _____   _____           ____ __  __
+   / __ \   /   |  / ___/  / ___/          / __ )\ \/ /
+  / /_/ /  / /| |  \__ \   \__ \          / __  | \  / 
+ / ____/  / ___ | ___/ /  ___/ /         / /_/ /  / /  
+/_/      /_/  |_|/____/  /____/   ______/_____/  /_/   
+                                 /_____/               
+
+"""
+load_dotenv()
 API_TOKEN = os.getenv("API_TOKEN")
 
 
@@ -55,6 +67,8 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
 
         super(PassbyJiraCreateIssueOperator, self).__init__(*args, **kwargs)
 
+        self.ui_color = "#DEDEDE"
+
     def execute(self, context):
         """
         Executes the operator.
@@ -84,9 +98,15 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
             "POST", url, data=payload, headers=headers, auth=auth
         )
 
-        context["task_instance"].xcom_push(
-            key="jira_issue_id", value=response.json()["id"]
-        )
+        if response.status_code != 201:
+            raise ValueError(
+                f"Failed to create issue: {response.status_code} - {response.text}"
+            )
+
+        print(f"Successfully created issue: {response.text}")
+        
+        # push to xcom
+        self.xcom_push(context, key="response", value=response.text)
 
     @staticmethod
     def _get_issue_id(issue_type: str, auth: HTTPBasicAuth) -> str:
@@ -107,7 +127,11 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
             if issue["name"] == issue_type:
                 return issue["id"]
 
-        raise ValueError(f"Issue type '{issue_type}' not found.")
+        issue_types_list_string = '\n'.join([issue['name'] for issue in issue_types])
+
+        error_message = f"""Issue type '{issue_type}' not found. Available issue types: {issue_types_list_string}"""
+
+        raise ValueError(error_message)
 
     @staticmethod
     def _get_assignee_id(email: str, auth: HTTPBasicAuth) -> str:
