@@ -1,11 +1,23 @@
 import json
-import os
 
 import requests
 from airflow.models import BaseOperator
 from requests.auth import HTTPBasicAuth
+from airflow.models import Variable
 
-ACCEPTABLE_ISSUE_TYPES = ["Bug", "Task", "dev DEng", "dev DS", "prod", "Data Request"]
+PROJECT = "DATA"
+PBY_JIRA_URL = "https://passby.atlassian.net"
+ADMIN_USERNAME = "matias@passby.com"
+COOL_TEXT = """
+    ____     ___    _____   _____           ____ __  __
+   / __ \   /   |  / ___/  / ___/          / __ )\ \/ /
+  / /_/ /  / /| |  \__ \   \__ \          / __  | \  / 
+ / ____/  / ___ | ___/ /  ___/ /         / /_/ /  / /  
+/_/      /_/  |_|/____/  /____/   ______/_____/  /_/   
+                                 /_____/               
+
+"""
+API_TOKEN = Variable.get("pby_jira_api_token")
 
 
 class PassbyJiraCreateIssueOperator(BaseOperator):
@@ -33,33 +45,20 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
         """
-        self.jira_url = "https://passby.atlassian.net"
-        self.username = "matias@passby.com"
-        self.project = "DATA"
         self.summary = summary
         self.description = description
-
-        # Load the API token from the environment variables
-        api_token = os.getenv("API_TOKEN")
-        if not api_token:
-            raise ValueError("API_TOKEN environment variable not set")
-
-        self.api_token = api_token
 
         # Validate the assignee
         if "@" not in assignee:
             raise ValueError("Invalid assignee. Assignee should be an email address")
-
-        self.assignee = assignee
-
-        if issue_type not in ACCEPTABLE_ISSUE_TYPES:
-            raise ValueError(
-                f"Invalid issue type. Acceptable values: {ACCEPTABLE_ISSUE_TYPES}"
-            )
-
+        else:
+            self.assignee = assignee
+        
         self.issue_type = issue_type
 
         super(PassbyJiraCreateIssueOperator, self).__init__(*args, **kwargs)
+
+        self.ui_color = "#DEDEDE"
 
     def execute(self, context):
         """
@@ -71,76 +70,121 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
         Raises:
             ValueError: If the API_TOKEN environment variable is not set.
         """
-        # The URL of the REST API endpoint
-        url = f"{self.jira_url}/rest/api/3/issue"
+        url = f"{PBY_JIRA_URL}/rest/api/3/issue"
 
-        auth = HTTPBasicAuth("matias@passby.com", self.api_token)
+        auth = HTTPBasicAuth(ADMIN_USERNAME, API_TOKEN)
 
-        # The headers and data for the new issue
-        headers, data = self._return_headers_and_data(
-            project=self.project,
-            summary=self.summary,
-            description=self.description,
-            issue_type=self.issue_type,
-            assignee=self.assignee,
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+
+        issue_type_id = self._get_issue_id(self.issue_type, auth)
+
+        assignee_id = self._get_assignee_id(self.assignee, auth)
+
+        payload = self._return_payload(
+            assignee_id, issue_type_id, self.summary, self.description
         )
 
         # Make the API request
         response = requests.request(
-            "POST",
-            url,
-            headers=headers,
-            data=json.dumps(data),
-            auth=auth,
+            "POST", url, data=payload, headers=headers, auth=auth
         )
 
-        context["task_instance"].xcom_push(
-            key="jira_issue_id", value=response.json()["id"]
-        )
+        if response.status_code != 201:
+            raise ValueError(
+                f"Failed to create issue: {response.status_code} - {response.text}"
+            )
 
-    # Function to get assignee ID by email
-    def _get_assignee_id(email: str):
-        users_url = f"{JIRA_URL}/rest/api/3/user/search?query={email}"
-        response = requests.get(users_url, auth=auth)
-        users = json.loads(response.text)
-        
-        for user in users:
-            if user['emailAddress'] == email:
-                return user['accountId']
-        
-        return None
+        print(f"Successfully created issue: {response.text}")
+
+        # push to xcom
+        self.xcom_push(context, key="response", value=response.text)
 
     @staticmethod
-    def _return_headers_and_data(
-        project: str, summary: str, description: str, issue_type: str, assignee: str
-    ):
+    def _get_issue_id(issue_type: str, auth: HTTPBasicAuth) -> str:
         """
-        Returns the headers and data for the API request.
+        Get the issue ID by issue type.
 
         Args:
-            project (str): The project key.
+            issue_type (str): The issue type.
+            auth (HTTPBasicAuth): The HTTPBasicAuth object.
+        Returns:
+            str: The ID of the issue type.
+        """
+        issue_types_url = f"{PBY_JIRA_URL}/rest/api/3/issuetype"
+        response = requests.get(issue_types_url, auth=auth)
+        issue_types = json.loads(response.text)
+
+        for issue in issue_types:
+            if issue["name"] == issue_type:
+                return issue["id"]
+
+        issue_types_list_string = "\n".join([issue["name"] for issue in issue_types])
+
+        error_message = f"""Issue type '{issue_type}' not found. Available issue types: {issue_types_list_string}"""
+
+        raise ValueError(error_message)
+
+    @staticmethod
+    def _get_assignee_id(email: str, auth: HTTPBasicAuth) -> str:
+        """
+        Get the assignee ID by email.
+
+        Args:
+            email (str): The email of the assignee.
+            auth (HTTPBasicAuth): The HTTPBasicAuth object.
+        Returns:
+            str: The ID of the assignee.
+        """
+        users_url = f"{PBY_JIRA_URL}/rest/api/3/user/search?query={email}"
+        response = requests.get(users_url, auth=auth)
+        users = json.loads(response.text)
+
+        for user in users:
+            if user["emailAddress"] == email:
+                return user["accountId"]
+
+        raise ValueError(f"Assignee with email '{email}' not found.")
+
+    @staticmethod
+    def _return_payload(
+        assignee_id: str, issue_type: str, summary: str, description: str
+    ) -> str:
+        """
+        Returns the payload for the API request.
+
+        Args:
+            assignee_id (str): The ID of the assignee.
+            issue_type (str): The ID of the issue type.
             summary (str): The summary of the issue.
             description (str): The description of the issue.
-            issue_type (str): The type of the issue.
-            assignee (str): The assignee of the issue.
 
         Returns:
-            tuple: A tuple containing the headers and data for the API request.
+            str: The payload for the API request.
         """
-        # The headers for the API request
-        headers = {"Accept": "application/json", "Content-Type": "application/json"}
-
-        # The data for the new issue
-        data = {
-            "fields": {
-                "project": {"key": project},  # Replace with your project key
-                "summary": summary,
-                "description": description,
-                "issuetype": {"name": issue_type},  # Replace with your issue type
-                "assignee": {
-                    "name": assignee  # Replace with the username of the assignee
-                },
-            }
+        description_content = {
+            "type": "doc",
+            "version": 1,
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [{"type": "text", "text": f"{description}"}],
+                }
+            ],
         }
 
-        return headers, data
+        payload = json.dumps(
+            {
+                "fields": {
+                    "assignee": {"id": assignee_id},
+                    "issuetype": {"id": f"{issue_type}"},
+                    "project": {
+                        "key": "DATA"  # Replace PROJECT_KEY with the actual project key
+                    },
+                    "summary": f"{summary}",  # Update the summary field with the desired title
+                    "description": description_content,  # Update the description field with the desired content
+                },
+                "update": {},
+            }
+        )
+
+        return payload
