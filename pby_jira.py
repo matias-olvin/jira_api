@@ -70,6 +70,9 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
         Raises:
             ValueError: If the API_TOKEN environment variable is not set.
         """
+
+        print(COOL_TEXT)
+
         url = f"{PBY_JIRA_URL}/rest/api/3/issue"
 
         auth = HTTPBasicAuth(ADMIN_USERNAME, API_TOKEN)
