@@ -1,0 +1,51 @@
+name: Run isort
+on:
+    pull_request:
+      branches:
+        - master
+    push:
+      branches:
+        - master
+
+jobs:
+  isort-lint:
+    runs-on: ubuntu-latest
+    name: isort Lint
+    steps:
+      - uses: actions/checkout@v2
+        with:
+            ref: ${{ github.head_ref }}
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - uses: isort/isort-action@master
+        with:
+            sortPaths: "."
+  black-lint:
+    runs-on: ubuntu-latest
+    name: black Lint
+    steps:
+        - uses: actions/checkout@v3
+          with:
+            ref: ${{ github.head_ref }}
+        - uses: psf/black@stable
+          with:
+            options: "--check --diff"
+            use_pyproject: false
+  flake8-lint:
+    runs-on: ubuntu-latest
+    name: flake8 Lint
+    steps:
+        - uses: actions/checkout@v3
+          with:
+            ref: ${{ github.head_ref }}
+        - name: Set up Python environment
+          uses: actions/setup-python@v4
+          with:
+            python-version: "3.11"
+        - name: flake8 Lint
+          uses: py-actions/flake8@v2
+          with:
+            ignore: "E203"
+            exclude: "file1.py,file2.py"
+            max-line-length: "150"
