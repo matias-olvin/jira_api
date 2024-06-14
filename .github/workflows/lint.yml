@@ -21,10 +21,14 @@ jobs:
       # install poetry
       - name: Install poetry
         run: pipx install poetry==1.2.0
-      # install requirements
-      - name: Install requirements
-        run: poetry install --only black isort flake8
-      # Add new steps to run black, isort, and flake8
+      # install requirements (including dev dependencies)
+      - name: Install black
+        run: poetry install --only black
+      - name: Install isort
+        run: poetry install --only isort
+      - name: Install flake8
+        run: poetry install --only flake8
+      # run linters
       - name: Run black
         run: poetry run black .
       - name: Run isort
