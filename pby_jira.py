@@ -20,7 +20,6 @@ COOL_TEXT = """
 API_TOKEN = Variable.get("pby_jira_api_token")
 
 
-
 class PassbyJiraCreateIssueOperator(BaseOperator):
     """
     A custom Airflow operator for creating issues in Jira using the Passby Jira API.
@@ -54,7 +53,7 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
             raise ValueError("Invalid assignee. Assignee should be an email address")
         else:
             self.assignee = assignee
-        
+
         self.issue_type = issue_type
 
         super(PassbyJiraCreateIssueOperator, self).__init__(*args, **kwargs)
