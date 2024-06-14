@@ -1,4 +1,4 @@
-name: black_linter
+name: Run black
 
 on:
   pull_request:
