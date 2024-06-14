@@ -1,4 +1,4 @@
-name: Run isort
+name: Run Linters
 on:
     pull_request:
       branches:

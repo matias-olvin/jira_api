@@ -190,3 +190,6 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
         )
 
         return payload
+
+
+# flake8: noqa
