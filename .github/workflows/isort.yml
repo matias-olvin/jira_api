@@ -1,0 +1,20 @@
+name: Run isort
+on:
+    pull_request:
+      branches:
+        - master
+    push:
+      branches:
+        - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - uses: isort/isort-action@master
+        with:
+            sortPaths: "."
