@@ -8,8 +8,9 @@ on:
         - master
 
 jobs:
-  build:
+  isort-lint:
     runs-on: ubuntu-latest
+    name: isort Lint
     steps:
       - uses: actions/checkout@v2
         with:

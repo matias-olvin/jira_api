@@ -9,8 +9,9 @@ on:
       - master
 
 jobs:
-    lint:
+    black-lint:
         runs-on: ubuntu-latest
+        name: black Lint
         steps:
         - uses: actions/checkout@v3
           with:

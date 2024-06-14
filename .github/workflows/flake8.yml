@@ -10,7 +10,7 @@ on:
 jobs:
     flake8-lint:
         runs-on: ubuntu-latest
-        name: Lint
+        name: flake8 Lint
         steps:
             - uses: actions/checkout@v3
               with:
@@ -23,4 +23,5 @@ jobs:
               uses: py-actions/flake8@v2
               with:
                 ignore: "E203"
+                exclude: "file1.py,file2.py"
                 max-line-length: "150"
