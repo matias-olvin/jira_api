@@ -1,4 +1,4 @@
-name: Linting
+name: black_linter
 
 on:
   pull_request:
