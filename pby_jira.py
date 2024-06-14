@@ -20,6 +20,7 @@ COOL_TEXT = """
 API_TOKEN = Variable.get("pby_jira_api_token")
 
 
+
 class PassbyJiraCreateIssueOperator(BaseOperator):
     """
     A custom Airflow operator for creating issues in Jira using the Passby Jira API.
