@@ -21,19 +21,9 @@ jobs:
       # install poetry
       - name: Install poetry
         run: pipx install poetry==1.2.0
-      # install requirements (including dev dependencies)
+      # install requirements
       - name: Install requirements
-        run: poetry install --only lint
-      # run formatters
-      - name: Run formatters
-        run: |
-          set -o pipefail
-          poetry run make format
-      # run linters
-      - name: Run linters
-        run: |
-          set -o pipefail
-          poetry run make lint
+        run: poetry install --only black isort flake8
       # Add new steps to run black, isort, and flake8
       - name: Run black
         run: poetry run black .
