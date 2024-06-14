@@ -1,12 +1,12 @@
 import json
 
 import requests
-from requests.auth import HTTPBasicAuth
 from airflow.models import BaseOperator, Variable
+from requests.auth import HTTPBasicAuth
 
 PROJECT = "DATA"
 PBY_JIRA_URL = "https://passby.atlassian.net"
-ADMIN_USERNAME = "matias@passby.com" 
+ADMIN_USERNAME = "matias@passby.com"
 COOL_TEXT = """
     ____     ___    _____   _____           ____ __  __
    / __ \   /   |  / ___/  / ___/          / __ )\ \/ /
