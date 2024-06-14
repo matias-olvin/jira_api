@@ -1,9 +1,8 @@
 import json
 
 import requests
-from airflow.models import BaseOperator
+from airflow.models import BaseOperator, Variable
 from requests.auth import HTTPBasicAuth
-from airflow.models import Variable
 
 PROJECT = "DATA"
 PBY_JIRA_URL = "https://passby.atlassian.net"

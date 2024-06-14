@@ -1,8 +1,9 @@
-import requests
-from requests.auth import HTTPBasicAuth
-from dotenv import load_dotenv
-import os
 import json
+import os
+
+import requests
+from dotenv import load_dotenv
+from requests.auth import HTTPBasicAuth
 
 load_dotenv()
 API_TOKEN = os.getenv("API_TOKEN")
@@ -11,11 +12,12 @@ API_TOKEN = os.getenv("API_TOKEN")
 JIRA_URL = "https://passby.atlassian.net"
 USERNAME = "matias@passby.com"
 
+import json
+
 # This code sample uses the 'requests' library:
 # http://docs.python-requests.org
 import requests
 from requests.auth import HTTPBasicAuth
-import json
 
 url = f"{JIRA_URL}/rest/api/3/issue"
 
