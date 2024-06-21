@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "dags"
 version = "1.0.0"
-description = "Contains all DAGs"
-authors = ["Kartikey Mullick <kartikey@olvin.com>"]
+description = "Jira API implementation"
+authors = ["Matias Sanchez <matias@olvin.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
