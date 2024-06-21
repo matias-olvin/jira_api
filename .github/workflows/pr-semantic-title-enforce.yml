@@ -23,49 +23,15 @@ jobs:
           # Type abbreviation comments:
           # feat -> feature
           types: |
-            cleanup
-            feat
-            fix
-            improve
+            hotfix
+            coldfix
+            feature
             refactor
-            revert
           # Scope abbreviation comments:
-          # cli     -> command line interface
-          # fn      -> Pulsar Functions
-          # io      -> Pulsar Connectors
-          # offload -> tiered storage
-          # sec     -> security
-          # txn     -> transaction
-          # ws      -> websocket
-          # ml      -> managed ledger
-          # zk      -> zookeeper
-          # bk      -> bookkeeper
           scopes: |
-            admin
-            bk
-            broker
-            build
-            ci
-            cli
-            client
-            doc
-            fn
-            io
-            meta
-            misc
-            ml
-            monitor
-            offload
-            proxy
-            schema
-            sec
-            site
-            storage
-            test
-            txn
-            ws
-            zk
-            pip
+            dag
+            git
+            poetry
           # The pull request's title should be fulfilled the following pattern:
           #
           #     [<type>][<optional scope>] <description>
