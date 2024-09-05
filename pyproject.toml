@@ -6,6 +6,8 @@ authors = ["Kartikey Mullick <kartikey@olvin.com>"]
 readme = "README.md"
 
 [tool.ruff]
+output-format = "github" # ideal for github
+
 # match black
 line-length = 150
 target-version = "py310"
