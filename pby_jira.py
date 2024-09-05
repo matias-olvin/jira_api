@@ -82,13 +82,19 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
 
         assignee_id = self._get_assignee_id(self.assignee, auth)
 
-        payload = self._return_payload(assignee_id, issue_type_id, self.summary, self.description)
+        payload = self._return_payload(
+            assignee_id, issue_type_id, self.summary, self.description
+        )
 
         # Make the API request
-        response = requests.request("POST", url, data=payload, headers=headers, auth=auth)
+        response = requests.request(
+            "POST", url, data=payload, headers=headers, auth=auth
+        )
 
         if response.status_code != 201:
-            raise ValueError(f"Failed to create issue: {response.status_code} - {response.text}")
+            raise ValueError(
+                f"Failed to create issue: {response.status_code} - {response.text}"
+            )
 
         print(f"Successfully created issue: {response.text}")
 
@@ -142,7 +148,9 @@ class PassbyJiraCreateIssueOperator(BaseOperator):
         raise ValueError(f"Assignee with email '{email}' not found.")
 
     @staticmethod
-    def _return_payload(assignee_id: str, issue_type: str, summary: str, description: str) -> str:
+    def _return_payload(
+        assignee_id: str, issue_type: str, summary: str, description: str
+    ) -> str:
         """
         Returns the payload for the API request.
 
