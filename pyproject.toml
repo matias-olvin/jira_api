@@ -17,11 +17,12 @@ lint.select = [
     "I"     # Import sorting rules (codes starting with I)
 ]
 lint.ignore = [
-    #### specific rules
+    #### specific rules to ignore
     "E501",     # Line too long ignore
     "E203",     # Added to avoid conflict of codes
-    "D203",
-    "D213",
-    "COM812",
-    "ISC001"
+    "E117",     # Over indented
+    "E114",     # Indentation with invalid multiple comment
+    "E111",     # Indentation with invalid multiple
+    "ISC001",   # Single line implicit string concatenation
+    "ISC002",   # Multi line implicit string concatenation
 ]
