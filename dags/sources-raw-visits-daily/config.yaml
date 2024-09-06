@@ -1,0 +1,145 @@
+project: storage-prod-olvin-com
+sns_project: sns-vendor-olvin-poc
+cross_project_service_account: cross-project-composer-worker@sns-vendor-olvin-poc.iam.gserviceaccount.com
+
+places_data_dataset: sg_places
+places_data_table: places_dynamic
+sg_places_filter_table: places_filter
+places_week_array_data_table: places_week_array_dynamic
+device_geohits_dataset: device_geohits
+device_clusters_dataset: device_clusters
+device_geohits_staging_dataset: device_geohits_staging
+device_clusters_staging_dataset: device_clusters_staging
+poi_visits_dataset: poi_visits
+poi_visits_scaled_dataset: poi_visits_scaled
+static_match_dataset: static_match_data
+met_areas_table: met_areas_
+metrics_dataset: metrics
+raw_data_bucket: tamoco_raw_data_prod_olvin_com
+raw_data_aws_bucket: tamoco_raw_data_aws_prod_olvin_com
+raw_archive_data_bucket: tamoco-archive-data-olvin-com
+raw_data_dataset: tamoco_raw_data
+geometries_dataset: area_geometries
+timezones_table: worldwide_timezones
+data_volumes_table: raw_tamoco_data_volumes
+tamoco_latency_table: latency_raw_tamoco
+geohits_latency_table: latency_geohits
+
+day_stats_visits_quality_procedure: storage-prod-olvin-com.procedures.day_stats_visits_quality
+quality_dataset: quality
+quality_model: weighting_dnn
+geoscaling_dataset: geoscaling
+geoscaling_model: geoscaling_model
+model_input_complete_table: model_input
+block_1_output_table: block_1_output
+
+
+day_stats_geohits_table: day_stats_geohits
+day_stats_table: day_stats
+day_stats_visits_quality_table: day_stats_visits_quality
+day_stats_clusters_table: day_stats_clusters
+met_areas_s2_table: met_areas_s2
+day_stats_visits_table: day_stats_visits
+day_stats_visits_scaled_table: day_stats_visits_scaled
+
+
+raw_visits_dataset: device_clusters
+poi_scaled_data_dataset: poi_visits_scaled
+poi_visits_staging_dataset: poi_visits_staging
+factoring_dataset: factoring_data
+iso_factor_table: iso_factor
+base_table_dataset: sg_base_tables
+covid_factor_dataset: covid_factors
+covid_reg_factors: mobility_regularising_factors
+category_match_table: sg_categories_match
+covid_factor_table: mobility_covid_factors_states
+
+visits_share_dataset: visits_share
+filtering_places_table: us_filtering_places
+sg_base_tables_dataset: sg_base_tables
+sg_categories_match_old_table: sg_categories_match
+naics_code_subcategories: naics_code_subcategories
+holidays_collection_table: holidays
+holidays_dictionary: holidays_dictionary
+prior_distance_function: prior_distance_parameters
+
+visit_stats_table: visit_stats
+device_homes_dataset: device_homes
+visits_cluster_table: visits_cluster
+trend_dataset: trend
+factor_volume_ref_table: factor_volume_ref
+factor_volume_table: factor_volume
+demographics_dataset: static_demographics_data_v2
+zipcode_demographics_table: original_zipcode_demographics_v2
+device_zipcodes_dataset: device_zipcodes_v2
+weather_dataset: historical_weather
+weather_csd_hourly_table: hourly_csds
+weather_collection_table: weather
+weather_dictionary: weather_dictionary
+regressors_dataset: visits_estimation_regressors
+special_days_table: special_days
+visit_share_dataset: visits_share
+visits_share_model: tf_classifier
+trend_model: trend_model
+trend_stats: trend_stats
+monitoring_dataset: monitoring_tables
+trend_granularity_level: 5
+granularity_grid_real_visits: 8
+ground_truth_volume_model_dataset: ground_truth_volume_model
+
+real_visits_dataset: real_visits
+real_visits_grid_factors_table: real_visits_grid_factors
+pre_scaling_poi_based_table: pre_scaling_poi_based
+ml_factors_poi_based_table: ml_factors_poi_based
+ground_truth_model_factor_per_poi_table: factor_per_poi
+
+new_regressors_dataset: regressors
+covid_collection_table: covid
+covid_dictionary_table: covid_dictionary
+covid_dictionary_zipcode_table: covid_dictionary_zipcode
+
+day_stats_visits_scaled_procedure: procedures.daily_stats_visits_scaled
+poi_scaling_procedure: procedures.full_scaling
+block_1_scaling_procedure: procedures.block_1_scaling
+post_block_1_scaling_procedure: procedures.post_block_1_scaling
+quality_ml_input_procedure: procedures.geoscaling_ml_input
+
+areas_dataset: area_geometries
+zipcodes_table: zipcodes
+zipcode_data_dataset: zipcode_visits
+factor_volume_zipcodes_table: factor_volume_zipcodes
+factor_volume_zipcodes_ref_table: factor_volume_zipcodes_ref
+zipcode_visits_scaled_dataset: zipcode_visits_scaled
+real_visits_factors_table: real_visits_grid_factors_zipcode
+zipcode_scaling_procedure: procedures.scaling_zipcodes
+smc_metrics_dataset: smc_metrics
+
+time_series_analysis_vis_block_groundtruth_table: time_series_analysis_vis_block_groundtruth
+
+test_compilation_dataset: test_compilation
+test_results_table: daily_pipeline_tests
+test_failures_dataset: test_failures
+functions_dataset: functions
+
+visits_all_daily_pipeline: sources-raw-visits-daily
+visits_all_daily_smc_backfill_pipeline: sources-raw-visits-daily-post-cluster-backfill
+visits_all_daily_raw_backfill_pipeline: sources-raw-visits-daily-post-aws-backfill
+
+visits_all_daily_label_value: visits_daily
+
+materialzed_views_dataset: materialized_views
+daily_observed_visits_mv: daily_observed_visits
+monthly_observed_visits_mv: monthly_observed_visits
+monthly_observed_visits_per_device_mv: monthly_observed_visits_per_device
+
+daily_estimation_dataset: daily_estimation
+accessible_by_sns_dataset: accessible_by_sns
+accessible_by_olvin_dataset: accessible_by_olvin
+target_ratio_table: target_ratio
+daily_factor_table: daily_factor
+grouped_daily_olvin_table: grouped_daily_olvin
+poi_list_table: poi_list
+daily_estimation_runs_table: daily_estimation_runs
+
+storage-dev: storage-dev-olvin-com
+storage-prod: storage-dev-olvin-com

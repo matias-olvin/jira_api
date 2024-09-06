@@ -1,0 +1,44 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.daily_estimation`(
+    poi_visits_block_1_table STRING,
+    daily_factor_table STRING,
+    OUT query_string STRING,
+    OUT final_table STRING
+)
+BEGIN
+SET query_string = CONCAT(FORMAT("""
+daily_estimation_scaling_join as (
+  SELECT *
+FROM `%s`
+inner join `%s` using (local_date)
+),
+daily_estimation_scaling AS (
+SELECT
+    device_id,
+    lat_long_visit_point,
+    publisher_id,
+    country,
+    device_os,
+    local_date, 
+    local_hour, 
+    day_of_week, 
+    hour_week, 
+    hour_ts, 
+    visit_ts, 
+    duration,
+    fk_sgplaces, 
+    fk_sgbrands, 
+    naics_code, 
+    enclosed,
+    STRUCT(visit_score_steps.original as original, 
+    visit_score_steps.weighted as weighted, 
+    visit_score_steps.opening as opening,
+    visit_score_steps.visit_share AS visit_share, 
+    visit_score * daily_factor as daily_estimation
+    ) as visit_score_steps,
+    visit_score * daily_factor as visit_score
+    from daily_estimation_scaling_join
+)
+""",
+poi_visits_block_1_table, daily_factor_table));
+SET final_table = "daily_estimation_scaling";
+END

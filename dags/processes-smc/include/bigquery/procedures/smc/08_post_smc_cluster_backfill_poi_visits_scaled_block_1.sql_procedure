@@ -1,0 +1,96 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.post_smc_cluster_backfill_block_1_scaling`(
+    destination_table STRING,
+    start_date STRING,
+    places_filter_table STRING,
+    zipcode_demographics_table STRING,
+    device_zipcodes_dataset STRING,
+    poi_visits_dataset STRING,
+    categories_match_table STRING,
+    naics_code_subcategories_table STRING,
+    places_table STRING,
+    weather_table STRING,
+    weather_dictionary_table STRING,
+    holidays_table STRING,
+    holidays_dictionary_table STRING,
+    tf_classifier_model STRING,
+    prior_distance_table STRING
+)
+OPTIONS(
+   description="""Scale poi_visits with all models except real visits."""
+ )
+BEGIN
+DECLARE visits_share_query_string STRING;
+DECLARE visits_share_final_table STRING;
+CALL `storage-prod-olvin-com.procedures.smc_visits_share`(
+    zipcode_demographics_table,
+    device_zipcodes_dataset,
+    start_date,
+    poi_visits_dataset,
+    categories_match_table,
+    naics_code_subcategories_table,
+    places_table,
+    weather_table,
+    weather_dictionary_table,
+    holidays_table,
+    holidays_dictionary_table,
+    tf_classifier_model,
+    prior_distance_table,
+    visits_share_query_string,
+    visits_share_final_table
+);
+EXECUTE IMMEDIATE CONCAT(FORMAT("""
+CREATE OR REPLACE TABLE
+ `%s`
+PARTITION BY local_date CLUSTER BY lat_long_visit_point, country, fk_sgplaces, device_id
+AS
+--VISITS SHARE
+WITH
+  %s
+
+SELECT
+    device_id,
+    lat_long_visit_point,
+    publisher_id,
+    country,
+    device_os,
+    local_date, 
+    local_hour, 
+    day_of_week, 
+    hour_week, 
+    hour_ts, 
+    visit_ts, 
+    duration,
+    filter_table.fk_sgplaces as fk_sgplaces, 
+    fk_sgbrands, 
+    naics_code, 
+    enclosed,
+    STRUCT(visit_score.original as original,
+    visit_score.weighted as weighted,
+    visit_score.opening as opening,
+    visit_score_visit_share AS visit_share
+    ) as visit_score_steps,
+    visit_score_visit_share AS visit_score
+FROM
+    %s t1
+INNER JOIN 
+    (SELECT fk_sgplaces FROM `%s` 
+    WHERE current_filter=True) filter_table
+  ON filter_table.fk_sgplaces=t1.fk_sgplaces
+CROSS JOIN
+-- This part of the query will fail if the number of rows does not match the original value. Because it fails, we avoid billing
+-- The error must be in some of the previous queries, one that reduces the number of rows
+    (SELECT COUNT(*) AS count_visits_share FROM %s)
+CROSS JOIN
+    (SELECT COUNT(*) AS count_old FROM `%s.*` WHERE local_date = "%s")
+""",
+destination_table, visits_share_query_string, visits_share_final_table,
+places_filter_table, visits_share_final_table,
+poi_visits_dataset, start_date),
+"""
+WHERE
+IF
+  ( (100*ABS((count_old - count_visits_share)/(count_old))) < 0.05,
+  TRUE, 
+  ERROR(FORMAT("VISITS SHARE. Number of rows must be equal in source and destination tables, but source has %'d rows and destination has %'d rows.", count_old, count_visits_share)) )
+""");
+END

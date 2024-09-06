@@ -1,0 +1,142 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.smc_geoscaling`(
+    day_stats_geohits_table STRING,
+    day_stats_clusters_table STRING,
+    day_stats_visits_table STRING,
+    input_table STRING,
+    quality_model STRING,
+    model_input_table STRING,
+    start_date STRING,
+    OUT query_string STRING,
+    OUT final_table STRING
+)
+BEGIN
+SET query_string = CONCAT(FORMAT("""
+geohits_stats AS (
+  SELECT
+  * FROM
+  (SELECT
+  local_date, s2_token,
+  IFNULL(part_of_day, "all") AS part_of_day,
+  * EXCEPT(local_date, s2_token, part_of_day, publisher_id)
+  FROM `%s`
+  WHERE
+  local_date IS NOT NULL
+  AND s2_token IS NOT NULL
+  AND publisher_id IS NULL
+  )
+  PIVOT(
+    MAX(d_devices_geohits) d_devices_geohits,
+    MAX(n_geohits) n_geohits,
+    MAX(device_geohits_25) device_geohits_25,
+    MAX(device_geohits_50) device_geohits_50,
+    MAX(device_geohits_75) device_geohits_75,
+    MAX(device_geohits_90) device_geohits_90,
+    MAX(device_geohits_98) device_geohits_98
+    FOR part_of_day IN ("day", "night", "all")
+  )
+),
+clusters_stats AS (
+  SELECT
+  * FROM
+  (SELECT
+  local_date, s2_token,
+  IFNULL(part_of_day, "all") AS part_of_day,
+  * EXCEPT(local_date, s2_token, part_of_day, publisher_id)
+  FROM `%s`
+  WHERE
+  local_date IS NOT NULL
+  AND s2_token IS NOT NULL
+  AND publisher_id IS NULL
+  )
+  PIVOT(
+    MAX(n_clusters) n_clusters,
+    MAX(d_devices_clusters) d_devices_clusters,
+    MAX(n_clusters_0d) n_clusters_0d,
+    MAX(device_clusters_0d_mean) device_clusters_0d_mean,
+    MAX(device_clusters_Nd_mean) device_clusters_Nd_mean
+    FOR part_of_day IN ("day", "night", "all")
+  )
+),
+visits_stats AS (
+  SELECT
+  * FROM
+  (SELECT
+  local_date, s2_token,
+  IFNULL(part_of_day, "all") AS part_of_day,
+  * EXCEPT(local_date, s2_token, part_of_day, publisher_id)
+  FROM `%s`
+  WHERE
+  local_date IS NOT NULL
+  AND s2_token IS NOT NULL
+  AND publisher_id IS NULL
+  )
+  PIVOT(
+    MAX(d_devices_visits) d_devices_visits,
+    MAX(n_visits) n_visits,
+    MAX(overlap_mean) overlap_mean,
+    MAX(n_visits_overlap_none) n_visits_overlap_none,
+    MAX(n_visits_overlap_low) n_visits_overlap_low,
+    MAX(n_visits_overlap_medium) n_visits_overlap_medium,
+    MAX(n_visits_overlap_high) n_visits_overlap_high
+    FOR part_of_day IN ("day", "night", "all")
+  )
+),
+
+--QUALITY
+quality as (
+SELECT
+  poi_visits_table.*,
+  IFNULL(poi_visits_table.visit_score_visit_share * output_2, 0) AS visit_score_geoscaling_probability,
+  IFNULL(poi_visits_table.visit_score_visit_share * output_1, 0) AS visit_score_geoscaling_global
+FROM
+  (select * from %s ) AS poi_visits_table
+LEFT JOIN (
+  SELECT
+    DATE(local_date) AS local_date,
+    device_id,
+      TIMESTAMP(visit_ts) AS visit_ts,
+    duration,
+    IF(IS_NAN(output_1[OFFSET(0)]), 0, output_1[OFFSET(0)]) AS output_1,
+    IF(IS_NAN(output_2), 0, `storage-prod-olvin-com.functions.local_p_from_raw`(output_2)) AS output_2
+  FROM
+    ML.PREDICT( MODEL 
+    -- `storage-prod-olvin-com.quality.weighting_dnn_v2`,
+    `%s` ,
+      (
+      SELECT
+          * EXCEPT (local_date, visit_ts, s2_token),
+          CAST(local_date AS STRING) AS local_date,
+          CAST(visit_ts AS STRING) AS visit_ts,
+          CAST(CAST(CAST(RTRIM(s2_token, "0") AS BYTES FORMAT "HEX") AS STRING FORMAT "BASE8") AS INT64) AS s2_token,
+          1.0 AS visit_score,
+          1.0 AS visit_score_base,
+          1.0 AS visit_score_opening,
+        FROM
+          `%s`
+        LEFT JOIN geohits_stats USING(s2_token, local_date)
+        LEFT JOIN clusters_stats USING(s2_token, local_date)
+        LEFT JOIN visits_stats USING(s2_token, local_date)
+        where  local_date = "%s"
+
+      ) )
+
+      )
+USING
+  ( local_date,
+    device_id,
+    visit_ts,
+    duration )
+
+)
+""",
+day_stats_geohits_table,
+day_stats_clusters_table,
+day_stats_visits_table,
+input_table,
+quality_model,
+model_input_table,
+start_date
+
+));
+SET final_table = "quality";
+END

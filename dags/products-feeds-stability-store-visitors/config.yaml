@@ -1,0 +1,50 @@
+# POSTGRES DATASET
+postgres_batch_dataset: postgres_batch
+sgplaceraw_table: SGPlaceRaw
+sgplaceactivity_table: SGPlaceActivity
+sgbrandraw_table: SGBrandRaw
+sgplacedailyvisitsraw_table: SGPlaceDailyVisitsRaw
+sgplacevisitorbranddestinations_table: SGPlaceVisitorBrandDestinations
+Version_table: Version
+backfill_start_date: '2019-01-01'
+dag-products-postgres: products-postgres
+
+# CAMEO STAGING DATASET
+cameo_staging_dataset: cameo_staging
+smoothed_transition_table: smoothed_transition
+
+# STATIC DEMOGRAPHICS DATASET
+static_demographics_data_dataset: static_demographics_data_v2
+cameo_categories_processed_table: cameo_categories_processed
+cameo_categories_percentages_table: cameo_categories_percentages
+
+# VISITOR DESTINATIONS DATASET
+destinations_dataset: visitor_brand_destinations
+destinations_history_table: observed_connections_history
+
+# VISITOR HOME DATASET
+home_dataset: visitors_home
+zipcodes_table: zipcode
+
+# PLACES DATASET
+places_dataset: sg_places
+places_dynamic_table: places_dynamic 
+brands_table: brands_dynamic
+
+# BASE TABLES DATASET
+base_tables_dataset: sg_base_tables
+non_sensitive_naics_codes_table: non_sensitive_naics_codes
+
+# PUBLIC FEEDS DATASET
+public_feeds_dataset: public_data_feeds_type_2
+public_feeds_finance_dataset: public_data_feeds_type_2_finance
+public_feeds_staging_dataset: public_data_feeds_type_2_staging
+store_visitors_temp_table: store_visitors_temp
+store_visitors_snapshot_table: store_visitors_snapshot_table
+store_visitors_table: store_visitors
+
+# GCS BUCKET
+raw_feed_bucket: pby-public-data-feed-type-2
+raw_feed_finance_bucket: pby-public-data-feed-type-2-finance
+dataproc_region: europe-west1
+versioning_bucket: pby-product-p-gcs-euwe1-data_feeds_base_table_versions

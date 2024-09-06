@@ -1,0 +1,719 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.monthly`(
+    location_key STRING,
+    storage_project_id STRING,
+    visits_dataset STRING,
+    places_dataset STRING,
+    places_table STRING,
+    date_start STRING,
+    date_end STRING,
+    filter_brands STRING,
+    geometry_table STRING,
+    device_zipcodes_dataset STRING,
+    static_demographics_data_dataset STRING,
+    zipcode_demographics_table STRING,
+    destination_table STRING
+)
+BEGIN
+EXECUTE IMMEDIATE FORMAT(
+"""
+INSERT `%s`
+WITH
+poi_scaled_filtered_table AS (
+  SELECT
+    DATE_TRUNC(local_date, MONTH) AS local_date_org,
+    device_id,
+    visit_score,
+    %s
+  FROM
+    `%s.%s.*`
+  INNER JOIN(SELECT pid AS fk_sgplaces, CAST(postal_code AS INT64) as fk_zipcodes FROM `%s.%s.%s`) USING(fk_sgplaces)
+  WHERE
+    local_date >= DATE_SUB("%s", INTERVAL 2 MONTH)
+    AND local_date < DATE_TRUNC("%s", MONTH)
+ AND visit_score > 0 %s
+),
+visits_table AS (
+  SELECT
+    local_date,
+    device_id,
+    visit_score,
+    %s
+  FROM
+    (
+      SELECT
+        local_date_org,
+        device_id,
+        visit_score,
+        %s
+      FROM poi_scaled_filtered_table
+      JOIN (
+          SELECT
+            pid AS %s,
+          FROM
+            `%s.%s` )
+      USING(%s)
+    )
+    CROSS JOIN UNNEST(
+      GENERATE_DATE_ARRAY(
+        local_date_org,
+        DATE_ADD(local_date_org, INTERVAL 2 MONTH),
+        INTERVAL 1 MONTH
+      )
+    ) AS local_date
+  WHERE
+    local_date >= "%s"
+    AND local_date < "%s"
+    AND %s IS NOT NULL
+),
+device_zipcodes_deduplicated AS (
+  SELECT
+    device_id,
+    zip_id,
+    local_date,
+  FROM
+    (
+      SELECT
+        device_id,
+        ANY_VALUE(zip_id) AS zip_id,
+        local_date
+      FROM
+        `%s.%s.*`
+      WHERE
+        local_date >= DATE_SUB("%s", INTERVAL 2 MONTH) AND
+        local_date < "%s"
+      GROUP BY
+        device_id,
+        local_date
+    )
+    JOIN `%s.%s.*` USING(device_id, zip_id, local_date)
+  WHERE
+    local_date < "%s"
+),
+zipcode_exact_table AS (
+  SELECT
+    visit_score,
+    %s,
+    device_id,
+    zip_id,
+    local_date,
+  FROM
+    visits_table
+    JOIN device_zipcodes_deduplicated USING(device_id, local_date)
+),
+zipcode_temporal_table AS(
+  SELECT
+    visit_score,
+    %s,
+    anti_exact_visits.device_id,
+    zip_id,
+    anti_exact_visits.local_date,
+    row_num,
+    MIN(row_num) OVER (
+      PARTITION BY anti_exact_visits.device_id,
+      anti_exact_visits.local_date
+    ) AS min_row_num,
+  FROM
+    (
+      SELECT
+        device_id,
+        zip_id,
+        Row_Number() OVER (
+          PARTITION BY device_id
+          ORDER BY
+            local_date DESC
+        ) AS row_num,
+        local_date,
+      FROM
+        device_zipcodes_deduplicated
+    ) AS date_ordered_zips
+    RIGHT JOIN (
+      SELECT
+        visits_table.visit_score,
+        visits_table.%s,
+        device_id,
+        local_date
+      FROM
+        visits_table
+        LEFT JOIN zipcode_exact_table USING(device_id, local_date)
+      WHERE
+        zipcode_exact_table.device_id IS NULL
+    ) AS anti_exact_visits
+    ON anti_exact_visits.device_id = date_ordered_zips.device_id
+    AND anti_exact_visits.local_date >= date_ordered_zips.local_date
+),
+zipcode_final_table AS (
+      SELECT
+        visit_score,
+        %s,
+        device_id,
+        zip_id,
+        local_date,
+      FROM
+        zipcode_temporal_table
+      WHERE
+        min_row_num = row_num OR min_row_num IS NULL
+      UNION ALL
+      SELECT
+        *
+      FROM
+        zipcode_exact_table
+),
+visits_demographics_table AS (
+  SELECT
+    *
+  FROM
+    zipcode_final_table
+    LEFT JOIN (
+      SELECT
+        fk_incomes_5 AS fk_incomes,
+        fk_incomes_16,
+        fk_life_stages,
+        rent_score,
+        owner_score,
+        fk_house_values,
+        private_transport_score,
+        walk_score,
+        public_transport_score,
+        work_from_home_score,
+        agriculture_mining_score,
+        construction_manufacturing_score,
+        logistics_utilities_score,
+        information_financial_services_score,
+        property_score,
+        science_technology_score,
+        management_score,
+        admin_score,
+        health_education_score,
+        arts_entertainment_score,
+        hospitality_score,
+        public_admin_score,
+        zip_id
+      FROM
+        `%s.%s.%s`
+    ) USING(zip_id)
+),
+ref_groups_table AS (
+  SELECT
+    DISTINCT
+    %s,
+    local_date
+  FROM
+    visits_demographics_table
+),
+ref_income_table AS (
+  SELECT
+    %s,
+    local_date,
+    fk_incomes_16
+  FROM
+    (
+      SELECT
+        fk_incomes_16
+      FROM
+        UNNEST(GENERATE_ARRAY(1, 16, 1)) AS fk_incomes_16
+    )
+    CROSS JOIN ref_groups_table
+),
+ref_house_value_table AS (
+  SELECT
+    %s,
+    local_date,
+    fk_house_values
+  FROM
+    (
+      SELECT
+        fk_house_values
+      FROM
+        UNNEST(GENERATE_ARRAY(1, 16, 1)) AS fk_house_values
+    )
+    CROSS JOIN ref_groups_table
+),
+ref_life_stage_table AS (
+  SELECT
+    %s,
+    local_date,
+    fk_life_stages
+  FROM
+    (
+      SELECT
+        fk_life_stages
+      FROM
+        UNNEST(GENERATE_ARRAY(1, 5, 1)) AS fk_life_stages
+    )
+    CROSS JOIN ref_groups_table
+),
+final_demographics_table AS(
+  SELECT
+    * --EXCEPT(local_percentage), IFNULL(local_percentage, 0.0) AS local_percentage
+  FROM
+    (
+      SELECT
+        %s,
+        local_date,
+        ARRAY_AGG(
+          IFNULL(percentage, 0)
+          ORDER BY
+            fk_incomes_16
+        ) AS sorted_income_percentages
+      FROM
+        (
+          -- Income
+          SELECT
+            %s,
+            local_date,
+            fk_incomes_16,
+            visit_sum /(SUM(visit_sum) OVER total_date) AS percentage
+          FROM
+            (
+              SELECT
+                %s,
+                local_date,
+                fk_incomes_16,
+                SUM(visit_score) AS visit_sum
+              FROM
+                visits_demographics_table
+              WHERE
+                fk_incomes_16 IS NOT NULL
+              GROUP BY
+                %s,
+                local_date,
+                fk_incomes_16
+            )
+          WINDOW total_date AS (
+              PARTITION BY
+              %s,
+              local_date
+            )
+        )
+        RIGHT JOIN ref_income_table USING(
+          %s,
+          local_date,
+          fk_incomes_16
+        )
+      GROUP BY
+        %s,
+        local_date
+    )
+    JOIN (
+      -- House value
+      SELECT
+        %s,
+        local_date,
+        ARRAY_AGG(
+          IFNULL(percentage, 0)
+          ORDER BY
+            fk_house_values
+        ) AS sorted_house_value_percentages
+      FROM
+        (
+          SELECT
+            %s,
+            local_date,
+            fk_house_values,
+            visit_sum /(SUM(visit_sum) OVER total_date) AS percentage
+          FROM
+            (
+              SELECT
+                %s,
+                local_date,
+                fk_house_values,
+                SUM(visit_score) AS visit_sum
+              FROM
+                visits_demographics_table
+              WHERE
+                fk_house_values IS NOT NULL
+              GROUP BY
+                %s,
+                local_date,
+                fk_house_values
+            )
+          WINDOW total_date AS (
+              PARTITION BY 
+              %s,
+              local_date
+            )
+        )
+        RIGHT JOIN ref_house_value_table USING(
+          %s,
+          local_date,
+          fk_house_values
+        )
+      GROUP BY
+        %s,
+        local_date
+    ) USING (
+      %s,
+      local_date
+    )
+    JOIN (
+      -- Life stage
+      SELECT
+        %s,
+        local_date,
+        ARRAY_AGG(
+          IFNULL(percentage, 0)
+          ORDER BY
+            fk_life_stages
+        ) AS sorted_life_stage_percentages
+      FROM
+        (
+          SELECT
+            %s,
+            local_date,
+            fk_life_stages,
+            visit_sum /(SUM(visit_sum) OVER total_date) AS percentage
+          FROM
+            (
+              SELECT
+                %s,
+                local_date,
+                fk_life_stages,
+                SUM(visit_score) AS visit_sum
+              FROM
+                visits_demographics_table
+              WHERE
+                fk_life_stages IS NOT NULL
+              GROUP BY
+                %s,
+                local_date,
+                fk_life_stages
+            )
+          WINDOW total_date AS (
+              PARTITION BY
+              %s,
+              local_date
+            )
+        )
+        RIGHT JOIN ref_life_stage_table USING(
+          %s,
+          local_date,
+          fk_life_stages
+        )
+      GROUP BY
+        %s,
+        local_date
+    ) USING (
+      %s,
+      local_date
+    )
+    JOIN (
+      -- Ocupation
+      SELECT
+        %s,
+        local_date,
+        ARRAY_CONCAT(
+          ARRAY(
+            SELECT
+              agriculture_mining_score / total_score
+          ),
+          ARRAY(
+            SELECT
+              
+                construction_manufacturing_score / total_score
+          ),
+          ARRAY(
+            SELECT
+              logistics_utilities_score / total_score
+          ),
+          ARRAY(
+            SELECT
+              
+                information_financial_services_score / total_score
+          ),
+          ARRAY(
+            SELECT
+              property_score / total_score
+          ),
+          ARRAY(
+            SELECT
+              science_technology_score / total_score
+          ),
+          ARRAY(
+            SELECT
+              management_score / total_score
+          ),
+          ARRAY(
+            SELECT
+              admin_score / total_score
+          ),
+          ARRAY(
+            SELECT
+              health_education_score / total_score
+          ),
+          ARRAY(
+            SELECT
+              arts_entertainment_score / total_score
+          ),
+          ARRAY(
+            SELECT
+              hospitality_score / total_score
+          ),
+          ARRAY(
+            SELECT
+              public_admin_score / total_score
+          )
+        ) AS sorted_occupation_percentages
+      FROM
+        (
+          SELECT
+            %s,
+            local_date,
+            agriculture_mining_score,
+            construction_manufacturing_score,
+            logistics_utilities_score,
+            information_financial_services_score,
+            property_score,
+            science_technology_score,
+            management_score,
+            admin_score,
+            health_education_score,
+            arts_entertainment_score,
+            hospitality_score,
+            public_admin_score,
+            IF(
+              agriculture_mining_score + construction_manufacturing_score + logistics_utilities_score + information_financial_services_score + property_score + science_technology_score + management_score + admin_score + health_education_score + arts_entertainment_score + hospitality_score + public_admin_score > 0,
+              agriculture_mining_score + construction_manufacturing_score + logistics_utilities_score + information_financial_services_score + property_score + science_technology_score + management_score + admin_score + health_education_score + arts_entertainment_score + hospitality_score + public_admin_score,
+              1
+            ) AS total_score
+          FROM
+            (
+              SELECT
+                %s,
+                local_date,
+                SUM(visit_score * agriculture_mining_score) AS agriculture_mining_score,
+                SUM(visit_score * construction_manufacturing_score) AS construction_manufacturing_score,
+                SUM(visit_score * logistics_utilities_score) AS logistics_utilities_score,
+                SUM(
+                  visit_score * information_financial_services_score
+                ) AS information_financial_services_score,
+                SUM(visit_score * property_score) AS property_score,
+                SUM(visit_score * science_technology_score) AS science_technology_score,
+                SUM(visit_score * management_score) AS management_score,
+                SUM(visit_score * admin_score) AS admin_score,
+                SUM(visit_score * health_education_score) AS health_education_score,
+                SUM(visit_score * arts_entertainment_score) AS arts_entertainment_score,
+                SUM(visit_score * hospitality_score) AS hospitality_score,
+                SUM(visit_score * public_admin_score) AS public_admin_score
+              FROM
+                visits_demographics_table
+              WHERE agriculture_mining_score IS NOT NULL OR construction_manufacturing_score IS NOT NULL OR logistics_utilities_score IS NOT NULL OR information_financial_services_score IS NOT NULL OR property_score IS NOT NULL OR science_technology_score IS NOT NULL OR management_score IS NOT NULL OR
+               admin_score IS NOT NULL OR health_education_score IS NOT NULL OR arts_entertainment_score IS NOT NULL OR hospitality_score IS NOT NULL OR public_admin_score IS NOT NULL
+              GROUP BY
+                %s,
+                local_date
+            )
+        )
+    ) USING (
+      %s,
+      local_date
+    )
+    JOIN (
+      -- Transport
+      SELECT
+        %s,
+        local_date,
+        ARRAY_CONCAT(
+          ARRAY(
+            SELECT
+              private_transport_score / total_score 
+          ),
+          ARRAY(
+            SELECT
+              walk_score / total_score 
+          ),
+          ARRAY(
+            SELECT
+              public_transport_score / total_score 
+          ),
+          ARRAY(
+            SELECT
+              work_from_home_score / total_score
+          )
+        ) AS sorted_transport_percentages
+      FROM
+        (
+          SELECT
+            %s,
+            local_date,
+            private_transport_score,
+            walk_score,
+            public_transport_score,
+            work_from_home_score,
+            IF(
+              private_transport_score + walk_score + public_transport_score + work_from_home_score > 0,
+              private_transport_score + walk_score + public_transport_score + work_from_home_score,
+              1
+            ) AS total_score
+          FROM
+            (
+              SELECT
+                %s,
+                local_date,
+                SUM(visit_score * private_transport_score) AS private_transport_score,
+                SUM(visit_score * walk_score) AS walk_score,
+                SUM(visit_score * public_transport_score) AS public_transport_score,
+                SUM(visit_score * work_from_home_score) AS work_from_home_score
+              FROM
+                visits_demographics_table
+              WHERE private_transport_score IS NOT NULL OR walk_score IS NOT NULL OR public_transport_score IS NOT NULL OR work_from_home_score IS NOT NULL
+              GROUP BY
+                %s,
+                local_date
+            )
+        )
+    ) USING (
+      
+      %s,
+      local_date
+    )
+    JOIN (
+      -- Owner
+      SELECT
+        
+        %s,
+        local_date,
+        owner_score / total_score AS owner_percentage
+      FROM
+        (
+          SELECT
+            
+            %s,
+            local_date,
+            owner_score,
+            IF(
+              owner_score + rent_score > 0,
+              owner_score + rent_score,
+              1
+            ) AS total_score
+          FROM
+            (
+              SELECT
+                
+                %s,
+                local_date,
+                SUM(visit_score * owner_score) AS owner_score,
+                SUM(visit_score * rent_score) AS rent_score
+              FROM
+                visits_demographics_table
+              WHERE owner_score IS NOT NULL OR rent_score IS NOT NULL
+              GROUP BY
+                
+                %s,
+                local_date
+            )
+        )
+    ) USING (
+      
+      %s,
+      local_date
+    )
+    JOIN (
+      -- Local
+      SELECT
+        
+        %s,
+        local_date,
+        local_score / total_score AS local_percentage
+      FROM
+        (
+          SELECT
+            
+            %s,
+            local_date,
+            local_score,
+            IF(
+              total_score > 0,
+              total_score,
+              1
+            ) AS total_score
+          FROM
+            (
+              SELECT
+                
+                %s,
+                local_date,
+                SUM(visit_score * local_score) AS local_score,
+                SUM(visit_score) AS total_score
+              FROM
+                (
+                  SELECT
+                    
+                    %s,
+                    local_date,
+                    visit_score,
+                    0 AS local_score
+                  FROM
+                    visits_demographics_table
+                  WHERE owner_score IS NOT NULL
+                )
+              GROUP BY
+                
+                %s,
+                local_date
+            )
+        )
+    ) USING (
+      
+      %s,
+      local_date
+    )
+    JOIN (
+              SELECT
+                
+                %s,
+                local_date,
+                SUM(visit_score * missing_score) AS missing_total,
+                SUM(visit_score * known_score) AS known_total
+              FROM
+                (
+                  SELECT
+                    
+                    %s,
+                    local_date,
+                    visit_score,
+                    IF(zip_id IS NULL, 1, 0) AS missing_score,
+                    IF(zip_id IS NOT NULL, 1, 0) AS known_score
+                  FROM
+                    visits_demographics_table
+                )
+              GROUP BY
+                
+                %s,
+                local_date
+    ) USING (
+      
+      %s,
+      local_date
+    )
+)
+SELECT
+  
+  %s,
+  local_date,
+  sorted_income_percentages,
+  sorted_house_value_percentages,
+  sorted_life_stage_percentages,
+  sorted_occupation_percentages,
+  sorted_transport_percentages,
+  owner_percentage,
+  local_percentage,
+  missing_total,
+  known_total
+FROM
+  final_demographics_table
+""",
+destination_table,
+location_key, storage_project_id, visits_dataset, "storage-prod-olvin-com", places_dataset, places_table,
+date_start, date_end, filter_brands, location_key, location_key,
+location_key, storage_project_id, geometry_table, location_key, date_start, date_end,
+location_key, "storage-prod-olvin-com", device_zipcodes_dataset, date_start, date_end, "storage-prod-olvin-com",
+device_zipcodes_dataset, date_end, location_key, location_key, location_key, location_key, "storage-prod-olvin-com",
+static_demographics_data_dataset, zipcode_demographics_table, location_key, location_key, location_key, location_key,
+location_key, location_key, location_key, location_key, location_key, location_key, location_key, location_key,
+location_key, location_key, location_key, location_key, location_key, location_key, location_key, location_key,
+location_key, location_key, location_key, location_key, location_key, location_key, location_key, location_key,
+location_key, location_key, location_key, location_key, location_key, location_key, location_key, location_key,
+location_key, location_key, location_key, location_key, location_key, location_key, location_key, location_key,
+location_key, location_key, location_key, location_key, location_key, location_key, location_key, location_key,
+location_key);
+END

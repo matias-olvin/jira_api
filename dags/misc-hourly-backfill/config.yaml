@@ -1,0 +1,502 @@
+# PROJECTS
+storage_prod: storage-prod-olvin-com
+cross_project_service_account: cross-project-composer-worker@sns-vendor-olvin-poc.iam.gserviceaccount.com
+
+# BIGQUERY DATASETS
+accessible_by_sns_dataset: accessible_by_sns
+accessible_by_olvin_dataset: accessible_by_olvin
+postgres_dataset: postgres
+postgres_batch_dataset: postgres_batch
+area_geometries_dataset: area_geometries
+sg_places_dataset: sg_places
+sg_places_staging_dataset: sg_places_staging
+sg_places_metrics_dataset: sg_places_metrics
+sg_base_tables_dataset: sg_base_tables
+regressors_dataset: regressors
+regressors_staging_dataset: regressors_staging
+static_features_dataset: static_features
+static_features_staging_dataset: static_features_staging
+static_features_metrics_dataset: static_features_metrics
+covid_factors_dataset: covid_factors
+
+smc_sg_places_dataset: smc_sg_places
+smc_postgres_dataset: smc_postgres
+smc_regressors_dataset: smc_regressors
+smc_regressors_staging_dataset: smc_regressors_staging
+
+
+# SMC DATASETS
+smc_geoscaling_dataset: smc_geoscaling
+smc_quality_dataset: smc_quality
+smc_visits_share_dataset: smc_visits_share
+smc_poi_matching_dataset: smc_poi_matching
+poi_matching_dataset: poi_matching
+smc_daily_estimation_dataset: smc_daily_estimation
+smc_real_visits_dataset: smc_real_visits
+smc_ground_truth_volume_dataset: smc_ground_truth_volume_model
+smc_metrics_dataset: smc_metrics
+smc_poi_visits_scaled_dataset: smc_poi_visits_scaled_block_groundtruth
+smc_poi_visits_dataset: smc_poi_visits
+smc_poi_visits_filtered_dataset: smc_poi_visits_filtered
+smc_demand_dataset: smc_demand
+scaling_models_creation_pipeline: processes-smc
+
+# BIGQUERY TABLES
+sgplaceraw_table: SGPlaceRaw
+sgbrandraw_table: SGBrandRaw
+sgplacedailyvisitsraw_table: SGPlaceDailyVisitsRaw
+sgcenterraw_table: SGCenterRaw
+sgplacetradearearaw_table: SGPlaceTradeAreaRaw
+
+smc_ranking_validation_table: smc_ranking_validation
+
+city_table: city
+zipcodes_table: zipcodes
+census_blocks_table: census_blocks
+census_tracts_table: census_tracts
+worldwide_timezones_table: worldwide_timezones
+
+places_history_table: places_history
+places_dynamic_table: places_dynamic
+brands_history_table: brands_history
+brands_dynamic_table: brands_dynamic
+ideal_places_dynamic_table: ideal_places_dynamic
+places_week_array_table: places_week_array_dynamic
+openings_adjustment_table: openings_adjustment
+remove_brand_list_table: remove_brand_list
+brand_urls_table: brand_urls
+olvin_brand_ids_table: olvin_brand_ids
+duplicates_to_deactivate_table: duplicates_to_deactivate
+polygons_to_amend_table: polygons_to_amend
+site_id_lineage_table: site_id_lineage
+places_dynamic_placekey_table: places_dynamic_placekey
+spend_patterns_table: spend_patterns
+spend_patterns_static_table: spend_patterns_static
+malls_base_table: malls_base
+wrong_coords_blacklist_table: wrong_coords_blacklist
+
+sg_raw_table: sg_raw
+sg_places_table: sg_places
+sg_brands_table: sg_brands
+sg_places_filter_table: places_filter
+naics_codes_smc:
+  - NULL
+places_demand_table: places_demand_filter
+smc_demand_places:
+  - NULL
+sg_lineage_table: sg_lineage
+spend_patterns_raw_table: spend_patterns_raw
+
+# VISITS TO MALLS
+visits_to_malls_dataset: visits_to_malls
+visits_to_malls_metrics_dataset: visits_to_malls_metrics
+
+visits_to_malls_malls_to_remove_table: malls_to_remove
+
+model_evaluation_visits_to_malls_table: model_evaluation_visits_to_malls
+
+malls_gt_agg_table: malls_gt_agg
+
+visits_to_malls_daily_table: SGMallsDailyVisitsRaw
+visits_to_malls_monthly_table: SGMallsMonthlyVisitsRaw
+visits_to_malls_training_data_table: training_data
+visits_to_malls_model: visits_to_malls_random_forest_regressor
+visits_to_malls_model_output: predicted_from_random_forest_regressor
+
+
+
+sg_raw_metadata_table: sg_raw_metadata
+sg_raw_US_metadata_table: sg_raw_US_metadata
+sg_places_metadata_table: sg_places_metadata
+sg_brand_metadata_table: sg_brand_metadata
+sg_places_placekey_stats_table: sg_places_placekey_stats
+
+naics_code_subcategories_table: naics_code_subcategories
+luxury_brands_table: luxury_brands
+non_sensitive_naics_codes_table: non_sensitive_naics_codes
+different_digit_naics_code_table: different_digit_naics_code
+group_category_naics_code: group_category_naics_code
+
+covid_dictionary_table: covid_dictionary
+covid_dictionary_zipcode_table: covid_dictionary_zipcode
+predicthq_events_dictionary_table: predicthq_events_dictionary
+covid_restrictions_dictionary_table: covid_restrictions_dictionary
+web_search_trend_table: web_search_trend
+web_search_trend_dictionary_table: web_search_trend_dictionary
+dataforseo_table: dataforseo
+dataforseo_history_table: dataforseo_history
+
+category_factor_table: category_factor
+
+
+# SNS
+sns-project-id: sns-vendor-olvin-poc
+sns_composer: prod-sensormatic
+sns_project: sns-vendor-olvin-poc
+sns_composer_location: europe-west1
+
+sns_raw_dataset: sns_raw
+sns_raw_traffic_formatted_table: raw_traffic_formatted
+
+smc_gtvm_dataset: smc_gtvm
+gtvm_target_agg_sns_table: gtvm_target_agg_sns
+
+sns_dags_status_table: sns_dags_status
+
+sns_poi_metadata_table: sns_poi_metadata
+
+sns_smc_gtvm_training_pipeline: smc_gtvm_training
+
+accessible_by_sns_tables: 
+  - places_dynamic
+  - spend_patterns
+  - smc_poi_visits_scaled
+
+# GCS BUCKETS
+safegraph_raw_data_bucket: safegraph-raw-data-olvin-com
+places_history_backup_bucket: places-history-backup
+sns_transfer_bucket: sensormatic-transfer
+dataforseo-bucket: pby-source-p-gcs-euwe1-dataforseo
+postgres-final-database-tables-bucket: postgres-final-database-tables
+
+# DAGS
+dag-sources-regressors-covid-dictionary: sources-regressors-covid-dictionary
+dag-sources-regressors-predicthq-dictionary: sources-regressors-predicthq-dictionary
+dag-sources-regressors-weather-dictionary: sources-regressors-weather-dictionary
+dag-sources-regressors-smc-time-factors-holidays-dictionary: sources-regressors-holiday-dictionary-smc
+dag-sources-regressors-smc-time-factors-group-residuals-dictionary: sources-regressors-group-visits-dictionary-smc
+dag-sources-regressors-dataforseo-trend: sources-regressors-dataforseo-trend
+dag-processes-smc-block1: processes-smc-block1
+dag-processes-smc-block-daily-estimation: processes-smc-block-daily-estimation
+dag-processes-smc-block2: processes-smc-block2
+dag-processes-smc-block-groundtruth: processes-smc-block-groundtruth
+dag-processes-smc-places-migration: processes-smc-places-migration
+dag-processes-smc-regressors-migration: processes-smc-regressors-migration
+dag-processes-smc-models-migration: processes-smc-models-migration
+dag-processes-smc-metrics-migration: processes-smc-metrics-migration
+dag-processes-smc-visits-migration: processes-smc-visits-migration
+dag-processes-smc-sg-places-dynamic: processes-smc-sg-places-dynamic
+dag-processes-smc-dynamic-postgres: processes-smc-postgres-dynamic
+dag-processes-smc-regressors-dynamic: processes-smc-regressors-dynamic
+dag-processes-smc-block-daily-estimation-scaling: processes-smc-block-daily-estimation-scaling
+dag-processes-smc-block-groundtruth-scaling: processes-smc-block-groundtruth-scaling
+dag-processes-smc-block1-scaling: processes-smc-block1-scaling
+dag-processes-smc-block2-scaling: processes-smc-block2-scaling
+dag-processes-smc-update-prior-visits: processes-smc-update-prior-visits
+dag-misc-workflows-send2postgres-dev: misc-workflows-send2postgres-dev
+dag-misc-workflows-send2postgres-staging: misc-workflows-send2postgres-staging
+
+# CLOUD COMPOSER
+sns-prod-composer-name: prod-sns
+sns-prod-composer-location: europe-west1
+
+# SERVICE ACCOUNTS
+cross-project-composer-worker-service-account: cross-project-composer-worker@sns-vendor-olvin-poc.iam.gserviceaccount.com
+
+# ARTIFACT REGISTRY
+artifact-registry-prod-repos:
+  - apis
+  - causality
+  - gcf
+  - inference
+  - poi-matching
+  - validations
+artifact-registry-dev-repos:
+  - apis
+  - inference
+apis-lineage-latest-image: europe-west1-docker.pkg.dev/storage-prod-olvin-com/apis/lineage:latest
+
+# APIS
+safegraph_lineage_api_url: https://api.placekey.io/v1/lineage
+safegraph_lineage_api_key: vx0RhFbZnXRAnSben7qKPOb0iQwr998I
+
+
+
+
+# POI
+poi_visits_backfill_pipeline: processes-smc-poi-visits-backfill
+sg_agg_stats_backfill_pipeline: processes-monthly-update-agg-stats-backfill
+poi_list_table: poi_list
+pre_scaling_poi_based_table: pre_scaling_poi_based
+ml_factors_poi_based_table: ml_factors_poi_based
+poi_based_training_data_table: poi_based_training_data
+poi_visits_agg_fcv_table: poi_visits_agg_fcv
+
+
+# VISITS
+visits_daily_backfill_pipeline: processes-smc-post-cluster-backfill
+visits_share_dataset: visits_share
+visits_share_model: tf_classifier
+real_visits_dataset: real_visits
+real_visits_staging_dataset: smc_real_visits_staging
+real_visits_staging_dataset_final: real_visits_staging
+monitoring_real_visits_poi_device_based_table: monitoring_real_visits_poi_device_based
+monitoring_real_visits_poi_based_table: monitoring_real_visits_poi_based
+visits_volume_vis_table: visits_volume_vis
+daily_visits_table: daily_visits
+
+# SMC UPDATE PRIOR VISITS
+missing_brands_table: missing_brands
+missing_sub_categories_table: missing_sub_categories
+categories_to_append_table: categories_to_append
+new_brands_table: new_brands
+
+# SMC DAY STATS
+day_stats_visits_scaled_procedure: storage-prod-olvin-com.procedures.daily_stats_visits_scaled
+
+# SMC BLOCK 0
+time_series_analysis_vis_block_0_table: time_series_analysis_vis_block_0
+category_names_table: category_names
+visits_daily_block_0_table: smc_poi_visits_scaled_daily_block_0
+block_0_columns: [original, opening, weighted]
+
+# SMC BLOCK DAILY ESTIMATION
+target_ratio_table: target_ratio
+visits_daily_block_daily_estimation_table: smc_poi_visits_scaled_daily_block_daily_estimation
+time_series_analysis_vis_block_daily_estimation_table: time_series_analysis_vis_block_daily_estimation
+block_daily_estimation_columns: [daily_estimation]
+
+# SMC BLOCK 1
+poi_visits_block_1_dataset: smc_poi_visits_scaled_block_1
+poi_visits_non_zero_dataset: smc_poi_visits_non_zero
+pipeline_label_value: smc
+
+olvin_smc_gtvm_dataset: smc_gtvm
+olvin_gtvm_target_table: gtvm_target_agg_sns
+olvin_staging_dataset: sns_raw
+olvin_raw_traffic_table: smc_raw_traffic_formatted
+olvin_poi_matching_dataset: smc_poi_matching
+olvin_poi_matching_table: prod_matching_extended
+
+block_1_columns: [visit_share, geoscaling_global, geoscaling_probability]
+
+visits_daily_block_1_table: smc_poi_visits_scaled_daily_block_1
+block_1_scaling_procedure: storage-prod-olvin-com.procedures.smc_block_1_scaling
+
+
+# SMC NAICS FILTERING
+naics_filtering_procedure: storage-prod-olvin-com.procedures.naics_filtering
+
+# SMC BLOCK 2
+poi_visits_block_2_dataset: smc_poi_visits_scaled_block_2
+time_series_analysis_vis_block_2_table: time_series_analysis_vis_block_2
+visits_daily_block_2_table: smc_poi_visits_scaled_daily_block_2
+block_2_scaling_procedure: storage-prod-olvin-com.procedures.smc_block_2_scaling
+granularity_real_visits_device_based: 8
+block_2_columns: [real_device_based, ratio_poi_mall, smoothing_factor, factor_ground_truth, category_factor, real_poi_based]
+
+average_visits_table: average_visits
+initial_date_visits: '2019-10-01'
+final_date_visits: '2021-06-01'
+ratio_visitors_with_demog_table: ratio_visitors_with_demog
+real_visits_bucket: scaling-poi-visits-storage-prod-olvin-com/real_visits
+grid_factors_folder: real_visits_estimation/grid_factors
+ratio_population_visitors_table: ratio_population_visitors
+training_data_priors_table: training_data_priors
+prior_visits_table: priors_visits
+mall_bias: 2.45
+regularisation_boundaries: 4
+regularisation_strength: 1
+real_visits_model: poi_based_model
+
+real_visits_pip_req: >-
+  pyspark==3.0.1
+  pymc3
+  numpy
+real-visits_main_python_file_uri: gs://real-visits-job-files-olvin/runner.py
+real-visits_python_file_uris:
+  - gs://real-visits-job-files-olvin/args.py
+  - gs://real-visits-job-files-olvin/real_visits_factor.py
+
+real_visits_training_data_1_folder: real_visits_estimation/training_data_1
+real_visits_training_data_2_folder: real_visits_estimation/training_data_2
+real_visits_training_data_priors_folder: real_visits_estimation/training_data_priors
+real_visits_average_visits_folder: real_visits_estimation/average_visits
+real_visits_ratio_population_visitors_folder: real_visits_estimation/ratio_population_visitors
+
+real_visits_training_data_1_table: training_data_1
+real_visits_training_data_2_table: training_data_2
+
+county_info_table: county_info
+county_info_folder: real_visits_estimation/county_info
+
+
+# SMC BLOCK GTVM
+visits_daily_block_groundtruth_table: smc_poi_visits_scaled_daily_block_groundtruth
+poi_based_training_data_table: poi_based_training_data
+monitoring_training_data_table: monitoring_training_data_poi_based_met_areas
+median_ground_truth_category_visits: median_category_visits
+create_poi_features_1_table: model_input_1
+create_poi_features_2_table: model_input_2
+create_poi_features_v3_table: model_input_v3
+smc_create_poi_features_groundtruth_table: smc_gtvm_model_input
+model_input_visits_table: model_input_visits
+centre_cities_table: centre_cities
+gtvm_prior_brand_visits_table: gtvm_prior_brand_visits
+gtvm_attribute_adapted_pois_table: gtvm_attribute_adapted_pois
+attribute_adapted_pois_table: attribute_adapted_pois
+stats_to_unscale_block_A_table: stats_to_unscale_block_A
+smc_gtvm_model_input_visits_table: smc_gtvm_model_input_visits
+prior_brand_visits_table: prior_brand_visits
+prior_brand_visits_backup_table: prior_brand_visits_backup
+block_groundtruth_columns: [gtvm_factor]
+block_groundtruth_scaling_procedure: storage-prod-olvin-com.procedures.smc_block_groundtruth_scaling
+
+# GEOSCALING/VISITS SHARE
+geoscaling_probability_table: geoscaling_probability
+geoscaling_quality_input_table: quality_input
+filtering_places_table: filtering_places
+categories_match_table: sg_categories_match
+training_data_raw_table: training_data_raw
+zipcode_demographics_table: zipcode_demographics_v2
+visits_share_device_zipcodes_table: 2021
+weather_collection_table: weather
+prior_distances_table: histogram_distances
+
+visits_share_bucket: scaling-poi-visits-storage-prod-olvin-com/visits_share
+storage_bucket: scaling-poi-visits-storage-prod-olvin-com
+
+device_zipcodes_dataset: device_zipcodes
+smc_geoscaling_metrics_dataset: smc_geoscaling_metrics
+geoscaling_dataset: geoscaling
+functions_dataset: functions
+demographics_dataset: static_demographics_data
+visits_estimation_regressors_dataset: visits_estimation_regressors
+device_visits_dataset: device_clusters
+
+validation_timeseries_dow_category_table: validation_timeseries_dow_category
+validation_timeseries_dow_brand_table: validation_timeseries_dow_brand
+validation_timeseries_trend_brand_table: validation_timeseries_trend_brand
+validation_timeseries_trend_category_table: validation_timeseries_trend_category
+validation_timeseries_dow_global_table: validation_timeseries_dow_global
+validation_timeseries_trend_global_table: validation_timeseries_trend_global
+
+geoscaling_model: geoscaling_model
+
+notebook_location: europe-west1-b
+visits_share_vm_template: cpu-python-template-prod
+visits_share_notebook_data_machine: n1-standard-4
+base_script: download_scripts.sh
+scripts_bucket: scaling-poi-visits-job-files
+
+load_input_visits_share_script: load_input_to_instance.sh
+train_visits_share_script: install_and_run.sh
+load_model_visits_share_script: export_model_validation_to_gcs.sh
+
+visits_share_classifier_module: visits_share.models.train_classifier
+visits_share_distance_module: visits_share.models.train_prior_distance
+local_date_start: '2021-01-01'
+local_date_final: '2022-01-01'
+local_date_start_distance: '2020-01-05'
+local_date_final_distance: '2020-10-05'
+
+visits_share_package_name: visits_share-0.1.0-py3-none-any.whl
+
+visits_share_vm: visits-share-prod
+
+states_table: states
+
+week_categories_distribution_table: week_categories_distribution
+
+# STAND ALONE METRICS
+standalone_vs_child_metrics_table: standalone_vs_child_metrics
+standalone_vs_child_vis_table: standalone_vs_child_vis
+
+# TIME SERIES
+time_series_analysis_vis_block_1_table: time_series_analysis_vis_block_1
+
+# GRID VOLUME
+grid_volume_corr_table: grid_volume_corr
+grid_volume_vis_table: grid_volume_vis
+
+# QUALITY DATASET
+quality_dataset: quality
+
+# PARAMETERS TABLE
+prior_distance_parameters_table: prior_distance_parameters
+
+# PROD MATCHING TABLE
+prod_matching_extended_table: prod_matching_extended
+
+# DAILY
+grouped_daily_olvin_table: grouped_daily_olvin
+
+# DAILY ESTIMATION
+
+daily_estimation_dataset: daily_estimation
+poi_visits_block_daily_estimation_dataset: smc_poi_visits_scaled_block_daily_estimation
+
+block_daily_estimation_scaling_procedure: storage-prod-olvin-com.procedures.smc_block_daily_estimation_scaling
+
+# FACTOR TABLES
+daily_factor_table: daily_factor
+grid_factors_table: real_visits_grid_factors
+
+# GTVM TABLES
+gtvm_output_table: gtvm_output
+
+# METRICS
+metrics_dataset: metrics
+
+# GROUND TRUTH
+ground_truth_volume_dataset: ground_truth_volume_model
+ground_truth_model_factor_per_poi_table: factor_per_poi
+monitoring_factor_per_poi_table: monitoring_factor_per_poi
+prior_brand_visits_dev_dataset: prior_brand_visits_dev
+
+# DAILY STATS
+day_stats_visits_table: day_stats_visits
+day_stats_visits_scaled_table: day_stats_visits_scaled
+day_stats_geohits_table: day_stats_geohits
+day_stats_clusters_table: day_stats_clusters
+
+# GEOSCALING
+geoscaling_day_stats_table: day_stats
+geoscaling_visits_table: poi_visits
+model_input_complete_table: model_input
+
+time_series_analysis_visits_block_groundtruth_table: time_series_analysis_vis_block_groundtruth
+
+# POI DATASETS
+poi_visits_dataset: poi_visits
+poi_visits_scaled_dataset: poi_visits_scaled
+
+# HOLIDAYS
+holidays_dictionary_table: holidays_dictionary
+holidays_dictionary_zipcode_table: holidays_dictionary_zipcode
+holidays_collection_table: holidays
+
+# WEATHER
+weather_dictionary_table: weather_dictionary
+weather_dictionary_zipcode_table: weather_dictionary_zipcode
+
+# GROUP
+group_visits_dictionary_table: group_visits_dictionary
+group_visits_dictionary_zipcode_table: group_visits_dictionary_zipcode
+
+smc_events_dataset: smc_events
+events_dataset: events
+predicthq_dictionary_table: predicthq_events_dictionary
+
+
+# DYNAMIC PLACES
+places_week_array_dynamic_table: places_week_array_dynamic
+
+# PROCEDURES
+quality_ml_input_procedure: procedures.geoscaling_ml_input
+
+# MISC
+sensormatic_dags_status_table: sensormatic_dags_status
+device_homes_dataset: device_homes
+
+# TRADE AREA
+trade_area_dataset: trade_area
+raw_homes_table: raw_homes
+trade_area_input_table: input
+processed_geometries_table: processed_geometries
+functional_areas_30_table: functional_areas_30
+functional_areas_50_table: functional_areas_50
+functional_areas_70_table: functional_areas_70
+functional_areas_table: functional_areas
+processed_functional_areas_table: processed_functional_areas
+trade_area_bucket: pby-process-p-gcs-euwe1-tradeareas

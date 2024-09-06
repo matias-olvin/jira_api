@@ -1,0 +1,87 @@
+project: storage-prod-olvin-com
+
+static_demographics_data_dataset: static_demographics_data_v2
+zipcode_points_table: zipcode_points
+device_zipcodes_dataset: device_zipcodes_v2
+poi_visits_scaled_dataset: poi_visits_scaled
+zipcode_visits_scaled_dataset: zipcode_visits_scaled
+zipcode_demographics_table: original_zipcode_demographics_v2
+
+postgres_conn_id: postgres_gcp_dev
+
+vhl_staging_bucket: sg-demographics-files-prod-olvin-com
+ZipCode_table: zipcode
+PlaceDemographic_table: place
+ZipCodeDemographic_table: zipcode
+Activity_table: final_activity
+PlaceHome_dataset: visitors_home
+Activity_dataset: visitors_home
+Place_dataset: visitors_home
+ZipCode_dataset: visitors_home
+networks_dataset: networks
+networks_activity_table: networks_activity
+connections_all_table: connections_all_historical
+chain_connections_all_table: chain_connections_all_historical
+inference_dataset: visits_estimation
+poi_inference_activity_table: quality_activity
+zipcode_inference_activity_table: quality_activity_zipcode
+
+area_geometries_dataset: area_geometries
+zipcodes_table: zipcodes
+
+poi_dataset: sg_places
+poi_table: places_dynamic
+places_dataset: sg_places
+places_table: places_dynamic
+zipcode_dataset: area_geometries
+zipcode_table: zipcodes
+
+storage_project_id: storage-dev-olvin-com
+
+device_homes_dataset: device_homes
+Place_table: place
+dpc_staging_bucket: sg-demographics-files-prod-olvin-com
+poi_visits_dataset: visits_estimation_output
+poi_visits_table: poi_daily
+zipcode_visits_table: zipcode_daily
+poi_geometries_dataset: sg_places
+zipcode_geometries_dataset: area_geometries
+
+
+ZipCode_activity_table: final_activity_zipcode
+Place_activity_table: final_activity
+
+brands_dynamic_table: brands_dynamic
+activity_stats_table: activity_stats
+
+activity_procedure: storage-prod-olvin-com.procedures.activity
+activity_check_procedure: storage-prod-olvin-com.procedures.activity_check
+home_zipcode_procedure: storage-prod-olvin-com.procedures.zipcode
+home_send_procedure: storage-prod-olvin-com.procedures.send
+
+regressors_dataset: regressors
+covid_dictionary_poi_table: covid_dictionary
+covid_dictionary_zipcode_table: covid_dictionary_zipcode
+covid_table: covid
+postgres_dataset: postgres
+ZipCodeRaw_dataset: postgres
+ZipCodeRaw_table: ZipCodeRaw
+PlaceRaw_dataset: postgres
+PlaceRaw_table: SGPlaceRaw
+PlaceRaw_monthly_table: SGPlaceMonthlyVisitsRaw
+PlaceRaw_daily_table: SGPlaceDailyVisitsRaw
+ZipCodeRaw_daily_table: ZipCodeDailyVisitsRaw
+sg_placehome_zipcode_yearly_table: SGPlaceHomeZipCodeYearly
+sg_place_home_zipCode_table: SGPlaceHomeZipCode
+sg_place_activity_table: SGPlaceActivity
+sgplacetradearearaw_table: SGPlaceTradeAreaRaw
+sg_place_visitor_brand_destinations_table: SGPlaceVisitorBrandDestinations
+sgplacecameomonthlyraw_table: SGPlaceCameoMonthlyRaw
+
+dag-processes-monthly-update-visitor-destination: processes-monthly-update-visitor-destination
+
+early_computation_days: 6
+
+pipeline_label_value: sg_stats
+
+ranking_table: SGPlaceRanking

@@ -1,0 +1,282 @@
+### KPI PIPELINE
+
+project: storage-prod-olvin-com
+sns_project: sns-vendor-olvin-poc
+analysis_project: analysis-dev-olvin-com
+postgres_bucket: postgres-database-tables
+postgres_final_bucket: postgres-final-database-tables
+postgres_dev_conn_id: postgres_gcp_dev
+postgres_staging_conn_id: postgres_gcp_staging
+pg_send_vm_zone: us-east4-b
+sns_composer: prod-sensormatic
+sns_composer_location: europe-west1
+cross_project_service_account: cross-project-composer-worker@sns-vendor-olvin-poc.iam.gserviceaccount.com
+
+marketing_dataset: marketing
+postgres_batch_dataset: postgres_batch
+postgres_rt_dataset: postgres_rt
+postgres_dataset: postgres
+sgplaceraw_table: SGPlaceRaw
+cameo_staging_table: cameo_staging
+sg_places_dataset: sg_places
+openings_adjustment_table: openings_adjustment
+malls_base_table: malls_base
+wrong_coords_blacklist_table: wrong_coords_blacklist
+smoothed_transition_table: smoothed_transition
+
+sgcentercameo_raw_table: SGCenterCameoRaw
+sgcentercameomonthtly_raw: SGCenterCameoMonthlyRaw
+
+postgres_temp_dataset: postgres_temp
+monitoring_table: m_activity
+
+postgres_staging_bucket: postgres-database-tables-staging
+postgres_conn_id: postgres_gcp_dev
+
+sns_metrics_dataset: sns_metrics
+almanac_pois_table: almanac_pois
+almanac_groups_table: almanac_groups
+
+accessible_by_olvin_dataset: accessible_by_olvin
+almanac_accuracy_table: almanac_accuracy
+
+accessible_by_sns_dataset: accessible_by_sns
+pipeline_status_table: monthly_update_pipeline_status
+
+area_geometries_dataset: area_geometries
+city_table: city
+zipcodes_table: zipcodes
+
+sg_base_tables_dataset: sg_base_tables
+naics_code_subcategories_table: naics_code_subcategories
+
+sgplaceactivity_table: SGPlaceActivity
+zipcodeactivity_table: ZipCodeActivity
+stateraw_table: StateRaw
+countryraw_table: countryraw
+censustract_table: CensusTract
+cityraw_table: CityRaw
+zipcoderaw_table: ZipCodeRaw
+
+SGPlacePatternVisitsRaw_table: SGPlacePatternVisitsRaw
+SGPlaceCameoMonthlyRaw_table: SGPlaceCameoMonthlyRaw
+SGPlaceDailyVisitsRaw_table: SGPlaceDailyVisitsRaw
+SGPlaceHourlyVisitsRaw_table: SGPlaceHourlyVisitsRaw
+SGPlaceHourlyAllVisitsRaw_table: SGPlaceHourlyAllVisitsRaw
+SGPlaceVisitorBrandDestinations_table: SGPlaceVisitorBrandDestinations
+citypatternsactivity_table: CityPatternsActivityRaw
+zipcodepatternsactivity_table: ZipCodePatternsActivityRaw
+
+SGCenterRaw_table: SGCenterRaw
+SGPlaceMonthlyVisitsRaw_table: SGPlaceMonthlyVisitsRaw
+places_dynamic_table: places_dynamic
+
+postgres_staging_dataset: postgres_staging
+
+# BENCHMARKING TABLES
+
+SGPlaceBenchmarkingRaw_table: SGPlaceBenchmarkingRaw
+
+sgcenters_benchmarking_table: SGCentersBenchmarkingRaw
+sgstatecenters_benchmarking_table: SGStateCentersBenchmarkingRaw
+
+sgbrand_benchmarking_table: SGBrandBenchmarkingRaw
+sgbrandcity_benchmarking_table: SGBrandCityBenchmarkingRaw
+sgbrandstate_benchmarking_table: SGBrandStateBenchmarkingRaw
+sgcitymarket_benchmarking_table: SGCityMarketBenchmarkingRaw
+sgmarket_benchmarking_table: SGMarketBenchmarkingRaw
+sgstatemarket_benchmarking_table: SGStateMarketBenchmarkingRaw
+
+# MANUALLY ADD POIS
+dag-processes-monthly-update-manually-add-pois: processes-monthly-update-manually-add-pois
+manually_add_pois_dataset: manually_add_pois
+input_info_table: input_info
+
+# VISITS_TO_MALLS
+visits_to_malls_monthly_table: SGMallsMonthlyVisitsRaw
+visits_to_malls_dataset: visits_to_malls
+visits_to_malls_malls_to_remove_table: malls_to_remove
+
+sgbrandraw_table: SGBrandRaw
+
+# POSTGRES VERSION TABLES
+PlaceCompatibility_table: PlaceCompatibility
+Version_table: Version
+daterange_table: DateRange
+
+# APPLICABLE FOR TABLES THAT ONLY EXIST IN POSTGRES FINAL BUT NEED TO BE SENT TO BACKEND
+avoid_copy_from_postgres_to_postgres_batch:
+- PlaceCompatibility
+
+postgres_db_tables_in_bq:
+  - SGPlaceRaw
+  - SGBrandRaw
+  - ZipCodeRaw
+  - StateRaw
+  - SGPlaceActivity
+  - SGPlaceHourlyVisitsRaw
+  - SGPlaceDailyVisitsRaw
+  - SGPlaceMonthlyVisitsRaw
+  - SGPlaceRanking
+  - SGPlaceHomeZipCodeYearly
+  - SGPlaceVisitorBrandDestinations
+  - SGPlaceVisitorBrandDestinationsPercentages
+  - BrandMallLocations
+  - SGPlaceCameoRaw
+  - SGPlaceCameoMonthlyRaw
+  - CityRaw
+  - SGPlacePatternVisitsRaw
+  - CityPatternsActivityRaw
+  - ZipCodePatternsActivityRaw
+  - SGCenterRaw
+  - SGPlaceBenchmarkingRaw
+  - SGMallsDailyVisitsRaw
+  - SGMallsMonthlyVisitsRaw
+  - SGCentersBenchmarkingRaw
+  - SGStateCentersBenchmarkingRaw
+  - SGBrandBenchmarkingRaw
+  - SGBrandCityBenchmarkingRaw
+  - SGBrandStateBenchmarkingRaw
+  - SGCityMarketBenchmarkingRaw
+  - SGMarketBenchmarkingRaw
+  - SGStateMarketBenchmarkingRaw
+  - PlaceCompatibility
+
+postgres_db_raw_tables:
+  - PlaceCompatibility
+  - SGBrandBenchmarkingRaw
+  - SGBrandCityBenchmarkingRaw
+  - SGBrandStateBenchmarkingRaw
+  - SGCenterCameoMonthlyRaw
+  - SGCenterCameoRaw
+  - SGCentersBenchmarkingRaw
+  - SGCityMarketBenchmarkingRaw
+  - SGMallsDailyVisitsRaw
+  - SGMallsMonthlyVisitsRaw
+  - SGMarketBenchmarkingRaw
+  - SGPlaceBenchmarkingRaw
+  - SGPlaceCameoRaw
+  - SGPlaceRanking
+  - SGPlaceVisitorBrandDestinationsPercentages
+  - SGStateCentersBenchmarkingRaw
+  - SGStateMarketBenchmarkingRaw
+  - ZipCodeActivity
+
+postgres_db_mv_tables:
+  - BrandMallLocations
+  - CensusTract
+  - CityPatternsActivityRaw
+  - CityRaw
+  - CityZipcodesMonthlyVisitsRaw
+  - DateRange
+  - SGBrandDailyVisits
+  - SGBrandHourlyVisits
+  - SGBrandMonthlyVisits
+  - SGBrandRaw
+  - SGBrandSearch
+  - SGBrandStateHourlyVisits
+  - SGBrandStateMonthlyVisits
+  - SGCenterRaw
+  - SGPlaceActivity
+  - SGPlaceCameoMonthlyRaw
+  - SGPlaceDailyVisitsRaw
+  - SGPlaceHomeZipCodeYearly
+  - SGPlaceHourlyVisitsRaw
+  - SGPlaceMonthlyVisitsRaw
+  - SGPlacePatternVisitsRaw
+  - SGPlaceRaw
+  - SGPlaceSearch
+  - SGPlaceVisitorBrandDestinations
+  - StateRaw
+  - ZipCodePatternsActivityRaw
+  - ZipCodeRaw
+  - countryraw
+
+data_feeds_tables:
+  - SGPlaceHourlyAllVisitsRaw
+
+visits_postgres_tables:
+  - SGPlaceHourlyVisitsRaw
+  - SGPlaceDailyVisitsRaw
+  - SGPlaceMonthlyVisitsRaw
+  - SGPlaceRanking
+  - SGPlaceRaw
+  - SGPlaceHourlyAllVisitsRaw
+
+uniqueness_check_input_tables_list:
+  - SGPlaceHomeZipCode
+  - SGPlaceHourlyVisitsRaw
+  - SGPlaceHourlyAllVisitsRaw
+  - SGPlaceDailyVisitsRaw
+  - SGPlaceMonthlyVisitsRaw
+  - SGPlaceRanking
+  - SGPlacePatternVisitsRaw
+  - SGPlaceHomeZipCodeYearly
+
+activity_tables:
+  - SGPlaceActivity
+  - ZipCodeActivity
+
+refresh_view_tables:
+  - sgplacehourlyvisits
+  - sgbrandhourlyvisits
+  - sgbrand
+  - sgbrandmonthlydemographic
+  - sgbrandstatedailyvisits
+  - sgbrandstatehourlyvisits
+  - sgbrandstatemonthlydemographic
+  - sgplace
+  - sgplacedailyvisits
+  - sgbranddailyvisits
+  - sgplacelastmonthvisits
+  - sgplacemonthlydemographic
+  - sgplacemonthlyvisits
+  - zipcodehourlyvisits
+  - zipcodedailyvisits
+  - zipcodemonthlydemographic
+  - zipcode
+
+marketing_tables:
+  - SGPlaceRaw
+  - SGPlaceDailyVisitsRaw
+  - SGBrandRaw
+
+site_stability_table: SGPlaceMonthlyVisitsRaw
+prev_site_stability_table: SGPlaceMonthlyVisitsRaw_prev
+
+ftp_sensormatic_pipeline: ftp_sensormatic
+
+### PIPELINE METADATA
+
+pipeline_tracking_dataset: test_compilation
+monthly_update_table: monthly_update
+pipeline_metadata_table: daily_pipeline_metadata
+
+gcp_billing_dataset: gcp_billing_export
+gcp_billing_table: gcp_billing_export_v1_0195E4_4ADCB0_D38F0E
+
+
+## MATERIALIZED VIEWS EQV
+
+postgres_mv_dataset: postgres_mv_batch
+
+tenantfindercameoscores_table: TenantFinderCameoScores
+brandcameoscores_table: SGBrandCameoScoresRaw
+brandhourlyvisits_table: SGBrandHourlyVisits
+branddailyvisits_table: SGBrandDailyVisits
+brandmonthlyvisits_table: SGBrandMonthlyVisits
+brandstatehourlyvisits_table: SGBrandStateHourlyVisits
+brandstatedailyvisits_table: SGBrandStateDailyVisits
+brandstatemonthlyvisits_table: SGBrandStateMonthlyVisits
+cityzipcodesmonthlyvisits_table: CityZipcodesMonthlyVisitsRaw
+
+SGPlaceTradeAreaRaw_table: SGPlaceTradeAreaRaw
+SGPlaceHomeZipCodeYearly_table: SGPlaceHomeZipCodeYearly
+SGPlaceHomeCensusBlockGroupsYearly_table: SGPlaceHomeCensusBlockGroupsYearly
+
+SGPlaceSearch_table: SGPlaceSearch
+SGBrandSearch_table: SGBrandSearch
+
+BrandMallLocations_table: BrandMallLocations
+
+SGBrandLogo_table: SGBrandLogo

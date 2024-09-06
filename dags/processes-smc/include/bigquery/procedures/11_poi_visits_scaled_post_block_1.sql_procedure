@@ -1,0 +1,103 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.post_block_1_scaling`(
+    destination_table STRING,
+    poi_visits_block_1_table STRING,
+    start_date STRING,
+    end_date STRING,
+    daily_factor_table STRING,
+    ground_truth_model_factor_per_poi_table STRING
+)
+OPTIONS(
+   description="""Scale poi_visits with all models."""
+ )
+BEGIN
+DECLARE daily_estimation_query_string STRING;
+DECLARE daily_estimation_final_table STRING;
+DECLARE groundtruth_query_string STRING;
+DECLARE groundtruth_final_table STRING;
+DECLARE temp_daily_estimation STRING;
+DECLARE temp_groundtruth STRING;
+SET temp_daily_estimation = 'daily_estimation';
+SET temp_groundtruth = 'temp_groundtruth';
+
+CALL `storage-prod-olvin-com.procedures.daily_estimation`(
+    poi_visits_block_1_table,
+    daily_factor_table,
+    daily_estimation_query_string,
+    daily_estimation_final_table
+);
+EXECUTE IMMEDIATE CONCAT(FORMAT("""
+CREATE TEMP TABLE %s as 
+WITH 
+--daily_estimation
+  %s
+  select * from daily_estimation_scaling;
+""" , temp_daily_estimation, daily_estimation_query_string));
+
+CALL `storage-prod-olvin-com.procedures.groundtruth`(
+    temp_daily_estimation,
+    ground_truth_model_factor_per_poi_table,
+    groundtruth_query_string,
+    groundtruth_final_table
+);
+EXECUTE IMMEDIATE CONCAT(FORMAT("""
+CREATE TEMP TABLE %s as 
+WITH 
+--GROUNDTRUTH
+  %s
+  select * from groundtruth_scaling;
+""" , temp_groundtruth, groundtruth_query_string));
+
+EXECUTE IMMEDIATE CONCAT(FORMAT("""
+INSERT `%s`
+SELECT
+    device_id,
+    lat_long_visit_point, 
+    publisher_id,
+    country,
+    device_os,
+    local_date, 
+    local_hour, 
+    day_of_week, 
+    hour_week, 
+    hour_ts, 
+    visit_ts, 
+    duration,
+    fk_sgplaces, 
+    fk_sgbrands, 
+    naics_code, 
+    enclosed,
+    STRUCT(visit_score_steps.original as original, 
+    visit_score_steps.weighted as weighted, 
+    visit_score_steps.opening as opening,
+    visit_score_steps.visit_share AS visit_share,
+    visit_score_steps.daily_estimation AS daily_estimation, 
+    visit_score_steps.gtvm_factor as gtvm_factor) as visit_score_steps,
+    visit_score_steps.gtvm_factor as visit_score
+FROM
+    temp_groundtruth
+CROSS JOIN
+-- This part of the query will fail if the number of rows does not match the original value. Because it fails, we avoid billing
+-- The error must be in some of the previous queries, one that reduces the number of rows
+    (SELECT COUNT(*) AS count_daily_estimation FROM %s)
+CROSS JOIN
+    (SELECT COUNT(*) AS count_groundtruth FROM %s)
+CROSS JOIN
+    (SELECT COUNT(*) AS count_old FROM `%s` WHERE local_date >= "%s" AND local_date < "%s")
+
+""",
+destination_table,
+temp_daily_estimation,
+temp_groundtruth,
+poi_visits_block_1_table, start_date, end_date),
+"""
+WHERE IF(
+            (100*ABS((count_old - count_daily_estimation)/(count_old))) < 0.05,
+                        IF(
+                        (100*ABS((count_old - count_groundtruth)/(count_old))) < 0.09,
+                            TRUE,
+                        ERROR(FORMAT("GROUND TRUTH. Number of rows must be equal in source and destination tables, but source has %'d rows and destination has %'d rows.", count_old, count_groundtruth))),
+            ERROR(FORMAT("DAILY_ESTIMATION. Number of rows must be equal in source and destination tables, but source has %'d rows and destination has %'d rows.", count_old, count_daily_estimation))
+)
+"""
+);
+END

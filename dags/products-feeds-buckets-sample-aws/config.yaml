@@ -1,0 +1,8 @@
+# FEEDS
+public_feeds_type_1_bucket: pby-public-data-feed-type-1
+public_feeds_type_1_finance_bucket: pby-public-data-feed-type-1-finance
+sample_feeds_bucket: pby-public-data-feed-sample
+data_feeds_s3_bucket: pby-public-data-feed
+requester_pays_sample_bucket: pby-sample-requester-pays
+data_feeds_project: data-feed-olvin
+feeds_keys_gcs_bucket: pby-product-p-gcs-euwe1-datafeed-keys

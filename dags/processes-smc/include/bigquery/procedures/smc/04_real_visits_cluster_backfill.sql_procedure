@@ -1,0 +1,66 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.smc_cluster_backfill_real_visits`(input_table STRING, granularity_real_visits_device_based STRING, real_visits_grid_factors_table STRING, pre_scaling_poi_based_table STRING, ml_factors_poi_based_table STRING, OUT query_string STRING, OUT final_table STRING)
+BEGIN
+SET query_string = CONCAT(FORMAT("""
+real_visits_scaling_join as (
+  SELECT *,
+grid_factor * visit_score as visit_score_real_device_based,
+        grid_factor * ratio_poi_mall * visit_score as visit_score_ratio_poi_mall,
+        grid_factor * ratio_poi_mall * smoothing_factor * visit_score as visit_score_smoothing_factor,
+        grid_factor * ratio_poi_mall * smoothing_factor * factor_ground_truth * visit_score as visit_score_factor_ground_truth,
+        grid_factor * ratio_poi_mall * smoothing_factor * factor_ground_truth * category_factor * visit_score as visit_score_category_factor,
+        grid_factor * ratio_poi_mall * smoothing_factor * factor_ground_truth * category_factor * brand_factor * visit_score as visit_score_real_poi_based
+        FROM (
+            select 
+                * ,
+                `storage-prod-olvin-com.functions`.point_level2token(lat_long_visit_point, CAST(%s AS INT64)) AS s2_token,
+
+            from
+                %s
+            )
+        inner join
+            --`storage-prod-olvin-com.real_visits.real_visits_grid_factors`
+            `%s`
+        using (s2_token)
+        --inner join `storage-prod-olvin-com.real_visits.us_pre_scaling_poi_based` using (fk_sgplaces)
+        inner join `%s` using (fk_sgplaces)
+        --inner join `storage-prod-olvin-com.real_visits.us_ml_factors_poi_based` using (fk_sgplaces)
+        inner join `%s` using (fk_sgplaces)
+),
+real_visits_scaling AS (
+SELECT
+    device_id,
+    lat_long_visit_point,
+    publisher_id,
+    country,
+    device_os,
+    local_date, 
+    local_hour, 
+    day_of_week, 
+    hour_week, 
+    hour_ts, 
+    visit_ts, 
+    duration,
+    fk_sgplaces, 
+    fk_sgbrands, 
+    naics_code, 
+    enclosed,
+    STRUCT(visit_score_steps.original as original, 
+    visit_score_steps.weighted as weighted, 
+    visit_score_steps.opening as opening,
+    visit_score_steps.visit_share AS visit_share,
+    visit_score_steps.daily_estimation AS daily_estimation, 
+    visit_score_real_device_based AS real_device_based,
+    visit_score_ratio_poi_mall as ratio_poi_mall,
+    visit_score_smoothing_factor as smoothing_factor,
+    visit_score_factor_ground_truth as factor_ground_truth,
+    visit_score_category_factor as category_factor,
+    visit_score_real_poi_based AS real_poi_based) as visit_score_steps,
+    visit_score_real_poi_based as visit_score
+
+FROM
+    real_visits_scaling_join
+)
+""",
+granularity_real_visits_device_based, input_table, real_visits_grid_factors_table, pre_scaling_poi_based_table, ml_factors_poi_based_table));
+SET final_table = "real_visits_scaling";
+END;

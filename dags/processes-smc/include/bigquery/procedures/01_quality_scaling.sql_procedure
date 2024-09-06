@@ -1,0 +1,71 @@
+--TODO:
+-- get new quality models
+-- check if anything else needs to change with pablo
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.quality`(
+    input_table STRING,
+    quality_model STRING,
+    model_input_table STRING,
+    start_date STRING,
+    end_date STRING,
+    OUT query_string STRING,
+    OUT final_table STRING
+)
+BEGIN
+SET query_string = CONCAT(FORMAT("""
+--QUALITY
+quality as (
+SELECT
+  poi_visits_table.*,
+  IFNULL(poi_visits_table.visit_score_visit_share * output_1, 0) AS visit_score_quality
+FROM
+  (select * from %s ) AS poi_visits_table
+LEFT JOIN (
+  SELECT
+    DATE(local_date) AS local_date,
+    device_id,
+    visit_ts,
+    duration,
+    output_1
+  FROM
+    ML.PREDICT( MODEL 
+    -- `storage-prod-olvin-com.quality.weighting_dnn_v2`,
+    `%s` ,
+      (
+      SELECT
+        * EXCEPT(local_date),
+        CAST(local_date AS STRING) AS local_date
+      FROM
+      
+        (select distinct
+        local_date,
+    -1 AS s2_token,
+    device_id,
+    visit_ts,
+    duration,
+        accuracy,
+        0 AS batch,
+        ch_ratio,
+        confidence,
+        n_hits,
+        vc_ratio,
+        density_7, density_8, density_9, device_clusters_0d_mean, device_clusters_Nd_mean, overlap_mean,
+        CAST(device_geohits_50 AS INT64) AS device_geohits_50,
+        CAST(device_geohits_90 AS INT64) AS device_geohits_90,
+        from
+        -- `storage-prod-olvin-com.quality.model_input_complete_v2_met_areas_2` 
+        `%s`
+    -- WHERE local_date >= '2021-01-01' and local_date < '2022-01-01'
+        where  local_date >= "%s" AND local_date < "%s"
+        ) 
+      ) )    WHERE IS_NAN(output_1) = false) --remove any NaNs from model
+USING
+  ( local_date,
+    device_id,
+    visit_ts,
+    duration )
+
+)
+""",
+input_table, quality_model, model_input_table, start_date, end_date));
+SET final_table = "quality";
+END

@@ -1,0 +1,71 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.block_daily_estimation_scaling`(
+    destination_table STRING,
+    start_date STRING,
+    end_date STRING,
+    poi_visits_block_1_table STRING,
+    daily_factor_table STRING
+)
+OPTIONS(
+   description="""Apply scaling to real visits POI visits scaled."""
+ )
+BEGIN
+DECLARE daily_estimation_query_string STRING;
+DECLARE daily_estimation_final_table STRING;
+CALL `storage-prod-olvin-com.procedures.daily_estimation`(
+    poi_visits_block_1_table,
+    daily_factor_table,
+    daily_estimation_query_string,
+    daily_estimation_final_table
+);
+EXECUTE IMMEDIATE CONCAT(FORMAT("""
+CREATE OR REPLACE TABLE
+ `%s`
+PARTITION BY local_date CLUSTER BY lat_long_visit_point, country, fk_sgplaces, device_id
+AS
+WITH 
+--DAILY_ESTIMATION
+  %s
+SELECT
+    device_id,
+    lat_long_visit_point,
+    publisher_id,
+    country,
+    device_os,
+    local_date, 
+    local_hour, 
+    day_of_week, 
+    hour_week, 
+    hour_ts, 
+    visit_ts, 
+    duration,
+    fk_sgplaces, 
+    fk_sgbrands, 
+    naics_code, 
+    enclosed,
+    STRUCT(visit_score_steps.original as original, 
+    visit_score_steps.weighted as weighted, 
+    visit_score_steps.opening as opening,
+    visit_score_steps.visit_share AS visit_share,
+    visit_score_steps.geoscaling_probability as geoscaling_probability,
+    visit_score_steps.geoscaling_global as geoscaling_global,
+    visit_score_steps.daily_estimation as daily_estimation
+    ) as visit_score_steps,
+    visit_score_steps.daily_estimation as visit_score 
+FROM
+    %s
+CROSS JOIN
+-- This part of the query will fail if the number of rows does not match the original value. Because it fails, we avoid billing
+-- The error must be in some of the previous queries, one that reduces the number of rows
+    (SELECT COUNT(*) AS count_daily_estimation FROM %s)
+CROSS JOIN
+    (SELECT COUNT(*) AS count_old FROM %s)
+""",
+destination_table, daily_estimation_query_string, daily_estimation_final_table, daily_estimation_final_table, poi_visits_block_1_table),
+"""
+WHERE IF(
+    (100*ABS((count_old - count_daily_estimation)/(count_old))) < 0.01,
+    TRUE,
+    ERROR(FORMAT("DAILY ESTIMATION. Number of rows must be equal in source and destination tables, but source has %d rows and destination has %d rows.", count_old, count_daily_estimation))
+)
+""");
+END

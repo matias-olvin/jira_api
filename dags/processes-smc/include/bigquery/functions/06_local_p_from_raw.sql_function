@@ -1,0 +1,4 @@
+CREATE OR REPLACE FUNCTION
+  `storage-prod-olvin-com.functions.local_p_from_raw`( raw_p FLOAT64 ) AS (
+    1/(1+EXP(-(raw_p + LOG(0.8/(1-0.8)))))
+  );

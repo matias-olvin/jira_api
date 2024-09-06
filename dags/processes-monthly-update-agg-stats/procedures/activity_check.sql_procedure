@@ -1,0 +1,26 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.activity_check`(
+    final_table STRING,
+    original_table STRING
+)
+BEGIN
+EXECUTE IMMEDIATE FORMAT(
+"""
+CREATE OR REPLACE TABLE `%s` PARTITION BY run_date AS
+SELECT latest_run.run_date, latest_run.total_date,
+(latest_run.total_date - previous_run.total_date)/previous_run.total_date AS rel_change,
+old_date
+FROM
+(SELECT run_date,
+DATE_TRUNC(DATE_SUB(run_date, INTERVAL 1 MONTH), MONTH) AS old_date,
+COUNT(*) AS total_date FROM `%s`
+WHERE activity = "active"
+GROUP BY run_date) AS latest_run
+JOIN
+
+(SELECT run_date, COUNT(*) AS total_date FROM `%s`
+WHERE activity = "active"
+GROUP BY run_date) AS previous_run
+ON latest_run.old_date = previous_run.run_date
+""",
+final_table, original_table, original_table);
+END

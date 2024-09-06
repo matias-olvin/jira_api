@@ -1,0 +1,25 @@
+# PLACES
+sg_places_dataset: sg_places
+sg_places_table: places_dynamic
+static_places_table: 20211101
+dynamic_places_table: places_history
+brand_table: brands_dynamic
+
+# PROJECT CONFIG  
+project: storage-prod-olvin-com
+storage_project: storage-dev-olvin-com
+storage-dev: storage-dev-olvin-com
+storage-prod: storage-prod-olvin-com
+
+# BLOOMBERG
+bloomberg_dataset: bloomberg_feed
+bloomberg_bucket: bloomberg-feed-olvin-com
+
+poi_visits_dataset: poi_visits
+static_match_dataset: static_match_data
+sg_base_tables_dataset: sg_base_tables
+met_areas_table: met_areas_
+non_sensitive_naics_codes_table: non_sensitive_naics_codes
+
+# LABEL
+pipeline_label_value: dynamic_migration

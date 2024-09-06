@@ -1,0 +1,159 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.ml_input`(
+    destination_table STRING,
+    start_date STRING,
+    end_date STRING,
+    poi_visits_dataset STRING,
+    day_stats_visits_table STRING,
+    day_stats_geohits_table STRING,
+    day_stats_clusters_table STRING
+)
+OPTIONS(
+   description="""Add data too quality model input table."""
+ )
+BEGIN
+--CREATE TEMP FUNCTION hex_to_binary_fn(x STRING) AS
+--(
+--    CAST(FROM_HEX(X) AS STRING FORMAT "BASE2")
+--);
+--CREATE TEMP FUNCTION granularity_fn(x STRING, y INT64) AS
+--(
+--  CONCAT(SUBSTR(x, 0, 2*(y) + 3), '1', REPEAT('0', 2*(30-y)))
+--);
+--CREATE TEMP FUNCTION location_group_fn(x STRING, y INT64) AS
+--(
+--  TO_HEX(CAST(granularity_fn(x, y) AS BYTES FORMAT "BASE2"))
+--);
+EXECUTE IMMEDIATE FORMAT("""
+INSERT `%s` (
+  local_date,
+  s2_token,
+  device_id,
+  visit_ts,
+  vc_ratio,
+  ch_ratio,
+  n_hits,
+  accuracy,
+  confidence,
+  density_7,
+  density_8,
+  density_9,
+  device_geohits_50,
+  device_geohits_90,
+  device_clusters_0d_mean,
+  device_clusters_Nd_mean,
+  overlap_mean,
+  duration,
+  visit_score_base,
+  visit_score,
+  n_clusters_total,
+  lat_long_visit_point,
+  day_of_week,
+  local_hour
+)
+WITH visits_table AS (
+  SELECT
+    *,
+    `storage-prod-olvin-com.functions`.point_level2token(lat_long_visit_point, 5) AS s2_token,
+    -- TO_HEX(CAST(( -- We want the final result in hexadecimal
+    --    SELECT
+    --      STRING_AGG(
+    --        CAST(S2_CELLIDFROMPOINT(lat_long_visit_point, 5) >> bit & 0x1 AS STRING), '' ORDER BY bit DESC) -- S2_CELLIDFROMPOINT returns an integer, convert to binary. 14 is the level of the cell
+    --        FROM UNNEST(GENERATE_ARRAY(0, 63)) AS bit -- The standard is 64-bit long binary encoding
+    --    ) AS BYTES FORMAT "BASE2" -- Tell BQ it is a binary string, BYTES format is required to use TO_HEX
+    --  )
+    --) AS s2_token,
+  FROM
+  (SELECT
+    local_date,
+    ANY_VALUE(lat_long_visit_point) AS lat_long_visit_point,
+    DATE_TRUNC(local_date, MONTH) AS local_date_home,
+    device_id,
+    day_of_week,
+    visit_ts,
+    local_hour,
+    duration,
+    SUM(visit_score.opening) AS visit_score_opening,
+    SUM(visit_score.original) AS visit_score,
+    ANY_VALUE(quality_stats.n_hits) AS n_hits,
+    ANY_VALUE(quality_stats.n_clusters) AS n_clusters,
+    ANY_VALUE(quality_stats.confidence) AS confidence,
+    ANY_VALUE(quality_stats.accuracy) AS accuracy,
+    ANY_VALUE(quality_stats.n_cluster_geohash_7) AS density_7,
+    ANY_VALUE(quality_stats.n_cluster_geohash_8) AS density_8,
+    ANY_VALUE(quality_stats.n_cluster_geohash_9) AS density_9,
+  FROM
+   `%s.*`
+  WHERE
+   local_date >= "%s" AND local_date < "%s" AND parent_bool = FALSE
+  GROUP BY
+    local_date,
+    device_id,
+    day_of_week,
+    visit_ts,
+    local_hour,
+    duration
+  )
+)
+SELECT
+  local_date,
+  s2_token,
+  device_id,
+  visit_ts,
+  SUM(visit_score) OVER (PARTITION BY local_date, s2_token, device_id) / GREATEST(n_clusters, 1) AS vc_ratio,
+  n_clusters / GREATEST(n_hits, 1) AS ch_ratio,
+  CAST(n_hits AS INT64) AS n_hits,
+  accuracy,
+  confidence,
+  CAST(density_7 AS INT64) AS density_7,
+  CAST(density_8 AS INT64) AS density_8,
+  CAST(density_9 AS INT64) AS density_9,
+  CAST(device_geohits_50 AS INT64) AS device_geohits_50,
+  CAST(device_geohits_90 AS INT64) AS device_geohits_90,
+  device_clusters_0d_mean,
+  device_clusters_Nd_mean,
+  overlap_mean,
+  duration,
+  visit_score_opening AS visit_score_base,
+  visit_score,
+  n_clusters_total,
+  lat_long_visit_point,
+    day_of_week,
+    local_hour,
+FROM
+  visits_table
+  JOIN (SELECT s2_token, local_date, SUM(overlap_mean*n_visits)/(SUM(n_visits)) AS overlap_mean
+      FROM (SELECT * EXCEPT (s2_token), TO_HEX(CAST(`storage-prod-olvin-com.functions`.granularity_fn(`storage-prod-olvin-com.functions`.hex_to_binary_fn(s2_token), 5) AS BYTES FORMAT "BASE2")) AS s2_token
+      FROM `%s`)
+    WHERE
+      publisher_id IS NULL
+      AND part_of_day IS NULL
+      AND local_date >= "%s" AND local_date < "%s"
+      AND s2_token IS NOT NULL
+      GROUP BY s2_token, local_date)
+    USING(s2_token, local_date)
+    JOIN (SELECT s2_token, local_date, SUM(device_geohits_50 * n_geohits)/GREATEST(SUM(n_geohits), 1) AS device_geohits_50, SUM(device_geohits_90 * n_geohits)/GREATEST(SUM(n_geohits), 1) AS device_geohits_90
+    FROM (SELECT * EXCEPT (s2_token), TO_HEX(CAST(`storage-prod-olvin-com.functions`.granularity_fn(`storage-prod-olvin-com.functions`.hex_to_binary_fn(s2_token), 5) AS BYTES FORMAT "BASE2")) AS s2_token
+    FROM `%s`)
+    WHERE
+      publisher_id IS NULL
+      AND part_of_day IS NULL
+      AND local_date >= "%s" AND local_date < "%s"
+      AND s2_token IS NOT NULL
+      GROUP BY s2_token, local_date)
+    USING(s2_token, local_date)
+    JOIN (SELECT s2_token, local_date, SUM(n_clusters) AS n_clusters_total,
+  SUM(device_clusters_0d_mean * n_clusters_0d)/GREATEST(SUM(n_clusters_0d), 1) AS device_clusters_0d_mean, SUM(device_clusters_Nd_mean * (n_clusters - n_clusters_0d))/GREATEST(SUM(n_clusters - n_clusters_0d), 1) AS device_clusters_Nd_mean
+      FROM (SELECT * EXCEPT (s2_token), TO_HEX(CAST(`storage-prod-olvin-com.functions`.granularity_fn(`storage-prod-olvin-com.functions`.hex_to_binary_fn(s2_token), 5) AS BYTES FORMAT "BASE2")) AS s2_token
+      FROM `%s` )
+    WHERE
+      publisher_id IS NULL
+      AND part_of_day IS NULL
+      AND local_date >= "%s" AND local_date < "%s"
+      AND s2_token IS NOT NULL
+      GROUP BY s2_token, local_date
+)
+      USING(s2_token, local_date)
+""",
+destination_table, poi_visits_dataset, start_date, end_date, day_stats_visits_table, start_date, end_date,
+day_stats_geohits_table, start_date, end_date, day_stats_clusters_table, start_date, end_date);
+END

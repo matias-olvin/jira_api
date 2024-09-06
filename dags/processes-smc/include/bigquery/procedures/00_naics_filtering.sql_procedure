@@ -1,0 +1,12 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.naics_filtering`(
+    input_table STRING,
+    naics_code_subcategories_table STRING
+)
+BEGIN
+EXECUTE IMMEDIATE CONCAT(FORMAT("""
+DELETE
+ `%s` i
+WHERE i.naics_code IN (SELECT naics_code from `%s` WHERE exclude_bool=TRUE)
+""",
+input_table, naics_code_subcategories_table));
+END

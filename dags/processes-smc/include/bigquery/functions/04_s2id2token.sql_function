@@ -1,0 +1,8 @@
+CREATE OR REPLACE FUNCTION
+  `storage-prod-olvin-com.functions.s2_id2token`( grid INT64 ) AS (TO_HEX(CAST((
+        SELECT
+          STRING_AGG( CAST(grid >> bit & 0x1 AS STRING), ''
+          ORDER BY
+            bit DESC)
+        FROM
+          UNNEST(GENERATE_ARRAY(0, 63)) AS bit ) AS BYTES FORMAT "BASE2" ) ));

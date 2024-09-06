@@ -1,0 +1,24 @@
+storage-prod: storage-prod-olvin-com
+postgres_dataset: postgres
+visitor_brand_destinations_dataset: visitor_brand_destinations
+visitor_brand_destinations_metrics_dataset: visitor_brand_destinations_metrics
+visitor_brand_destinations_monthly_dataset: visitors_destinations_monthly
+observed_connections_table: observed_connections
+historical_connections_table: observed_connections_history
+monitoring_observed_connections_table: monitoring_observed_connections
+visitor_brand_dest_table: SGPlaceVisitorBrandDestinations
+visitor_brand_dest_percentages_table: SGPlaceVisitorBrandDestinationsPercentages
+brands_table: SGBrandRaw
+places_table: SGPlaceRaw
+ferber_leakage_table: ferber_leakage_ref
+ferber_synergy_table: ferber_synergy_ref
+monitoring_synergy_table: synergy_metric
+monitoring_leakage_table: leakage_metric
+visit_dataset: poi_visits_scaled
+
+project_id: storage-prod-olvin-com
+staging_bucket: postgres-database-tables-staging
+postgres_conn_id: postgres_gcp_dev
+
+pipeline_label_value: visitor_destinations
+

@@ -1,0 +1,12 @@
+sns_project: sns-vendor-olvin-poc
+sns_composer: prod-sensormatic
+sns_composer_location: europe-west1
+cross_project_service_account: cross-project-composer-worker@sns-vendor-olvin-poc.iam.gserviceaccount.com
+
+# ALL_REGRESSORS
+regressors_dataset: smc_regressors
+group_residuals_collection_table: group_visits
+group_visits_dictionary_table: group_visits_dictionary
+group_visits_dictionary_zipcode_table: group_visits_dictionary_zipcode
+
+accessible_by_olvin_dataset: accessible_by_olvin

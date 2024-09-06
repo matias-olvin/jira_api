@@ -1,0 +1,5 @@
+CREATE OR REPLACE FUNCTION
+  `storage-prod-olvin-com.functions.location_group_fn`( x STRING, y INT64 ) AS 
+(
+    SUBSTR(x, 0, 2*y + 3)
+);

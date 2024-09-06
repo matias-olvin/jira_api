@@ -1,0 +1,70 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.smc_block_groundtruth_scaling`(
+    destination_table STRING,
+    start_date STRING,
+    block_daily_estimation_table STRING,
+    ground_truth_model_factor_per_poi_table STRING
+)
+OPTIONS(
+   description="""Apply final scaling to real visits POI visits scaled."""
+ )
+BEGIN
+DECLARE groundtruth_query_string STRING;
+DECLARE groundtruth_final_table STRING;
+CALL `storage-prod-olvin-com.procedures.smc_groundtruth`(
+    block_daily_estimation_table,
+    start_date,
+    ground_truth_model_factor_per_poi_table,
+    groundtruth_query_string,
+    groundtruth_final_table
+);
+EXECUTE IMMEDIATE FORMAT("DELETE FROM `%s` WHERE local_date = '%s' ",
+ destination_table, start_date);
+EXECUTE IMMEDIATE CONCAT(FORMAT("""
+INSERT INTO
+ `%s`
+WITH 
+--GROUNDTRUTH
+  %s
+SELECT
+    device_id,
+    lat_long_visit_point,
+    publisher_id,
+    country,
+    device_os,
+    local_date, 
+    local_hour, 
+    day_of_week, 
+    hour_week, 
+    hour_ts, 
+    visit_ts, 
+    duration,
+    fk_sgplaces, 
+    fk_sgbrands, 
+    naics_code, 
+    enclosed,
+    STRUCT(visit_score_steps.original as original, 
+    visit_score_steps.weighted as weighted, 
+    visit_score_steps.opening as opening,
+    visit_score_steps.visit_share AS visit_share,
+    visit_score_steps.daily_estimation AS daily_estimation,
+    visit_score_steps.gtvm_factor as gtvm_factor
+    ) as visit_score_steps,
+    visit_score_steps.gtvm_factor as visit_score 
+FROM
+    %s
+CROSS JOIN
+-- This part of the query will fail if the number of rows does not match the original value. Because it fails, we avoid billing
+-- The error must be in some of the previous queries, one that reduces the number of rows
+    (SELECT COUNT(*) AS count_groundtruth FROM %s)
+CROSS JOIN
+    (SELECT COUNT(*) AS count_old FROM %s WHERE local_date = "%s")
+""",
+destination_table, groundtruth_query_string, groundtruth_final_table, groundtruth_final_table, block_daily_estimation_table, start_date),
+"""
+WHERE IF(
+    (100*ABS((count_old - count_groundtruth)/(count_old))) < 0.01,
+    TRUE,
+    ERROR(FORMAT("REAL VISITS. Number of rows must be equal in source and destination tables, but source has %d rows and destination has %d rows.", count_old, count_groundtruth))
+)
+""");
+END

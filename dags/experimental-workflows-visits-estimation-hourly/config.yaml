@@ -1,0 +1,22 @@
+env_project: storage-dev-olvin-com
+dev_project: storage-dev-olvin-com
+prod_project: storage-prod-olvin-com
+accessible_by_olvin_dataset: accessible_by_olvin
+accessible_by_sns_dataset: accessible_by_sns
+visits_estimation_model_dev_dataset: visits_estimation_model_dev
+visits_estimation_dataset: visits_estimation
+olvin_input: model_input_olvin
+olvin_event_input: events_holidays
+grouping_id: grouping_id
+model_output: model_output
+list_sns_pois_table: list_sns_pois
+
+sns_composer: prod-sensormatic
+sns_project: sns-vendor-olvin-poc
+sns_composer_location: europe-west1
+cross_project_service_account: cross-project-composer-worker@sns-vendor-olvin-poc.iam.gserviceaccount.com
+
+step: "test_0_w_seas_7"
+
+visits_estimation_pipeline: visits_estimation
+adjustments_hourly_combined_input: adjustments_hourly_combined_input

@@ -1,0 +1,45 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.smc_cluster_backfill_groundtruth`(
+    poi_visits_block_daily_estimation_table STRING,
+    ground_truth_model_factor_per_poi_table STRING,
+    OUT query_string STRING,
+    OUT final_table STRING
+)
+BEGIN
+SET query_string = CONCAT(FORMAT("""
+groundtruth_scaling_join as (
+  SELECT *
+FROM %s
+left join `%s` using (fk_sgplaces)
+),
+groundtruth_scaling AS (
+SELECT
+    device_id,
+    lat_long_visit_point,
+    publisher_id,
+    country,
+    device_os,
+    local_date, 
+    local_hour, 
+    day_of_week, 
+    hour_week, 
+    hour_ts, 
+    visit_ts, 
+    duration,
+    fk_sgplaces, 
+    fk_sgbrands, 
+    naics_code, 
+    enclosed,
+    STRUCT(visit_score_steps.original as original, 
+    visit_score_steps.weighted as weighted, 
+    visit_score_steps.opening as opening,
+    visit_score_steps.visit_share AS visit_share,
+    visit_score_steps.daily_estimation AS daily_estimation,
+    visit_score_steps.daily_estimation * ifnull(gtvm_factor, 1) as gtvm_factor
+    ) as visit_score_steps,
+    visit_score_steps.daily_estimation * ifnull(gtvm_factor, 1) as visit_score
+    from groundtruth_scaling_join
+)
+""",
+poi_visits_block_daily_estimation_table, ground_truth_model_factor_per_poi_table));
+SET final_table = "groundtruth_scaling";
+END

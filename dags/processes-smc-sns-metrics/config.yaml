@@ -1,0 +1,6 @@
+sns_project: sns-vendor-olvin-poc
+accessible_by_olvin_dataset: accessible_by_olvin
+gtvm_accuracy_table: gtvm_accuracy
+
+smc_metrics_dataset: smc_metrics
+smc_gtvm_metric_table: gtvm_visits_accuracy

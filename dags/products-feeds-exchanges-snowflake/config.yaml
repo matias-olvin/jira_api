@@ -1,0 +1,16 @@
+# FEEDS
+public_feeds_type_1_bucket: pby-public-data-feed-type-1
+public_feeds_type_2_bucket: pby-public-data-feed-type-2
+public_feeds_type_1_finance_bucket: pby-public-data-feed-type-1-finance
+public_feeds_type_2_finance_bucket: pby-public-data-feed-type-2-finance
+sample_feeds_bucket: pby-public-data-feed-sample
+data_feeds_s3_bucket: pby-public-data-feed
+store_visits_table: store_visits
+store_visits_trend_table: store_visits_trend
+store_visitors_table: store_visitors
+placekeys_table: placekeys
+dataproc_region: europe-west1
+# FEED DAGS
+placekeys_accuracy_feed: products-feeds-accuracy-placekeys
+sample_feed: products-feeds-exchanges-sample
+placekeys_stability_feed: products-feeds-stability-placekeys

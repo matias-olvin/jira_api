@@ -1,0 +1,82 @@
+CREATE OR REPLACE TABLE
+`{{ var.value.storage_project_id }}.{{ dag_run.conf['site_name'] }}.{{ stats_group }}`
+AS
+SELECT
+  * EXCEPT(
+    statistic,
+    stats_group),
+  CASE
+    WHEN statistic = "education_0_no_high_school" THEN "No High School"
+    WHEN statistic = "education_1_high_school_grad" THEN "High School Grad."
+    WHEN statistic = "education_2_asociate_degree" THEN "Associate's Degree"
+    WHEN statistic = "education_3_bachelor_degree" THEN "Bachelor's Degree"
+    WHEN statistic = "education_4_grad_or_prof_degree" THEN "Grad. or Prof. Degree"
+    WHEN statistic = "income_000k_010k" THEN "Less than $10k"
+    WHEN statistic = "income_010k_015k" THEN "$10k to $15k"
+    WHEN statistic = "income_015k_025k" THEN "$15k to $25k"
+    WHEN statistic = "income_025k_035k" THEN "$25k to $35k"
+    WHEN statistic = "income_035k_050k" THEN "$35k to $50k"
+    WHEN statistic = "income_050k_075k" THEN "$50k to $75k"
+    WHEN statistic = "income_075k_100k" THEN "$75k to $100k"
+    WHEN statistic = "income_100k_150k" THEN "$100k to $150k"
+    WHEN statistic = "income_150k_200k" THEN "$150k to $200k"
+    WHEN statistic = "income_200k_plus" THEN "More than $200k"
+    WHEN statistic = "pop_0_10" THEN "Less than 10"
+    WHEN statistic = "pop_10_to_19" THEN "10 to 19"
+    WHEN statistic = "pop_20_to_29" THEN "20 to 29"
+    WHEN statistic = "pop_30_to_39" THEN "30 to 39"
+    WHEN statistic = "pop_40_to_49" THEN "40 to 49"
+    WHEN statistic = "pop_50_to_59" THEN "50 to 59"
+    WHEN statistic = "pop_60_to_69" THEN "60 to 69"
+    WHEN statistic = "pop_70_to_79" THEN "70 to 79"
+    WHEN statistic = "pop_80_plus" THEN "80 or more"
+    WHEN statistic = "fk_life_stage_1" THEN "Young Singles and Couples"
+    WHEN statistic = "fk_life_stage_2" THEN "Young Families"
+    WHEN statistic = "fk_life_stage_3" THEN "Parents with School-Age Children"
+    WHEN statistic = "fk_life_stage_4" THEN "Older Families and Mature Couples"
+    WHEN statistic = "fk_life_stage_5" THEN "Retirees"
+    WHEN statistic = "white" THEN "White"
+    WHEN statistic = "black_or_african_american" THEN "Black or African American"
+    WHEN statistic = "american_indian_or_alaskan_native" THEN "American Indian or Alaskan Native"
+    WHEN statistic = "asian" THEN "Asian"
+    WHEN statistic = "native_hawaiian_and_other_pacific_islander" THEN "Native Hawaiian and Other Pacific Islander"
+    WHEN statistic = "other_race" THEN "Other Race"
+    WHEN statistic = "two_or_more_races" THEN "Two or More Races"
+    WHEN statistic = "house_inc_per_0_none" THEN "No Rent or Mortgage"
+    WHEN statistic = "house_inc_per_1_u20" THEN "Rent/Mort. less than 20% of income"
+    WHEN statistic = "house_inc_per_2_20_25" THEN "Rent/Mort. between 20% and 25% of income"
+    WHEN statistic = "house_inc_per_3_25_30" THEN "Rent/Mort. between 25% and 30% of income"
+    WHEN statistic = "house_inc_per_4_30_35" THEN "Rent/Mort. between 30% and 35% of income"
+    WHEN statistic = "house_inc_per_5_35p" THEN "Rent/Mort. more than 35% of income"
+    WHEN statistic = "pPropVal_1_uUSD10k" THEN "Less than $10k"
+    WHEN statistic = "pPropVal_2_USD10k_149k" THEN "$10k to $15k"
+    WHEN statistic = "pPropVal_3_USD15k_19k" THEN "$15k to $20k"
+    WHEN statistic = "pPropVal_4_USD20k_24k" THEN "$20k to $24k"
+    WHEN statistic = "pPropVal_5_USD25k_29k" THEN "$25k to $29k"
+    WHEN statistic = "pPropVal_6_USD30k_34k" THEN "$30k to $34k"
+    WHEN statistic = "pPropVal_7_USD35k_39k" THEN "$35k to $39k"
+    WHEN statistic = "pPropVal_8_USD40k_49k" THEN "$40k to $49k"
+    WHEN statistic = "pPropVal_9_USD50k_59k" THEN "$50k to $59k"
+    WHEN statistic = "pPropVal_10_USD60k_69k" THEN "$60k to $69k"
+    WHEN statistic = "pPropVal_11_USD70k_79k" THEN "$70k to $79k"
+    WHEN statistic = "pPropVal_12_USD80k_89k" THEN "$80k to $89k"
+    WHEN statistic = "pPropVal_13_USD90k_99k" THEN "$90k to $99k"
+    WHEN statistic = "pPropVal_14_USD100k_124k" THEN "$100k to $124k"
+    WHEN statistic = "pPropVal_15_USD125k_149k" THEN "$125k to $149k"
+    WHEN statistic = "pPropVal_16_USD150k_174k" THEN "$150k to $174k"
+    WHEN statistic = "pPropVal_17_USD175k_199k" THEN "$175k to $199k"
+    WHEN statistic = "pPropVal_18_USD200k_249k" THEN "$200k to $249k"
+    WHEN statistic = "pPropVal_19_USD250k_299k" THEN "$250k to $299k"
+    WHEN statistic = "pPropVal_20_USD300k_399k" THEN "$300k to $399k"
+    WHEN statistic = "pPropVal_21_USD400k_499k" THEN "$400k to $499k"
+    WHEN statistic = "pPropVal_22_USD500k_749k" THEN "$500k to $749k"
+    WHEN statistic = "pPropVal_23_USD750k_999k" THEN "$750k to $999k"
+    WHEN statistic = "pPropVal_24_USD1Mpl" THEN "More than $1M"
+END
+  AS stats_name
+FROM
+  `{{ var.value.storage_project_id }}.{{ dag_run.conf['site_name'] }}.{{ params['visitors_demographics_table'] }}_display`
+WHERE
+  stats_group = "{{ stats_group }}"
+ORDER BY
+  statistic

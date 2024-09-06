@@ -1,0 +1,101 @@
+project: storage-prod-olvin-com
+sns_project: sns-vendor-olvin-poc
+
+materialzed_views_dataset: materialized_views
+metrics_dataset: metrics
+accessible_by_sns_dataset: accessible_by_sns
+accessible_by_olvin_dataset: accessible_by_olvin
+poi_visits_scaled_dataset: poi_visits_scaled
+regressors_dataset: regressors
+events_dataset: events
+validations_kpi_dataset: validations_kpi
+validations_almanac_dataset: validations_almanac
+postgres_metrics_dataset: postgres_metrics
+postgres_dataset: postgres
+smc_postgres_dataset: smc_postgres
+postgres_batch_dataset: postgres_batch
+area_geometries_dataset: area_geometries
+daily_estimation_dataset: daily_estimation
+smc_daily_estimation_dataset: smc_daily_estimation
+events_dataset: events
+ground_truth_volume_model_dataset: ground_truth_volume_model
+smc_ground_truth_volume_model_dataset: smc_ground_truth_volume_model
+sg_base_tables_dataset: sg_base_tables
+sg_places_dataset: sg_places
+smc_sg_places_dataset: smc_sg_places
+visits_to_malls_dataset: visits_to_malls
+visits_estimation_dataset: visits_estimation
+static_features_dataset: static_features
+public_data_feeds_type_1_dataset: public_data_feeds_type_1
+
+holidays_dictionary_table: holidays_dictionary
+holidays_dictionary_zipcode_table: holidays_dictionary_zipcode
+holidays_regressors_collection_table: holidays
+
+group_visits_collection_table: group_visits
+group_visits_dictionary_table: group_visits_dictionary
+group_visits_dictionary_zipcode_table: group_visits_dictionary_zipcode
+
+weather_collection_table: weather
+predicthq_events_collection_table: predicthq_events_collection
+predicthq_events_dictionary_table: predicthq_events_dictionary
+web_search_trend_table: web_search_trend
+web_search_trend_dictionary_table: web_search_trend_dictionary
+
+prod_matching_extended_table: prod_matching_extended
+places_dynamic_table: places_dynamic
+brands_dynamic_table: brands_dynamic
+places_dynamic_placekey_table: places_dynamic_placekey
+
+average_visits_table: visits_avg
+
+daily_observed_visits_mv: daily_observed_visits
+monthly_observed_visits_mv: monthly_observed_visits
+monthly_observed_visits_per_device_mv: monthly_observed_visits_per_device
+weather_daily_mv: weather_daily
+
+trend_metrics_table: trend
+volume_metrics_table: volume
+sgplaceraw_table: SGPlaceRaw
+almanac_trend_mv: mv-trend_sg_place_raw
+almanac_volume_mv: mv-vol_sg_place_raw
+daily_correlations_mv: daily_correlations
+monthly_correlations_mv: monthly_correlations
+weekly_correlations_mv: weekly_correlations
+
+dwm_correlations_table: dwm_correlations
+kpi_v2_table_chart_view: kpi_v2_table_chart
+kpi_v2_table_chart_full_date_range_view: kpi_v2_table_chart_full_date_range
+
+zipcodes_table: zipcodes
+
+grouped_daily_olvin_table: grouped_daily_olvin
+poi_list_table: poi_list
+
+holidays_table: holidays
+
+attribute_adapted_pois_table: attribute_adapted_pois
+
+CensusTract_table: CensusTract
+sgcenterraw_table: SGCenterRaw
+sgplacedailyvisitsraw_table: SGPlaceDailyVisitsRaw
+sgplacemonthlyvisitsraw_table: SGPlaceMonthlyVisitsRaw
+zipcoderaw_table: ZipCodeRaw
+
+naics_code_subcategories_table: naics_code_subcategories
+openings_adjustment_table: openings_adjustment
+openings_adjustment_week_array_table: openings_adjustment_week_array
+places_dynamic_table: places_dynamic
+spend_patterns_static_table: spend_patterns_static
+
+model_input_table: model_input_v3
+model_input_visits_table: model_input_visits
+prior_brand_visits_table: prior_brand_visits
+stats_to_unscale_block_A_table: stats_to_unscale_block_A
+
+training_data_table: training_data
+
+events_manual_impact_olvin_category_table: events_manual_impact_olvin_category
+manual_closing_brands_table: manual_closing_brands
+
+store_visits_table: store_visits

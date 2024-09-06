@@ -1,0 +1,2 @@
+CREATE OR REPLACE TABLE `{{ var.value.env_project }}.{{ params['postgres_rt_dataset'] }}.{{ params['Version_table'] }}` COPY
+ `{{ var.value.env_project }}.{{ params['postgres_batch_dataset'] }}.{{ params['Version_table'] }}`;

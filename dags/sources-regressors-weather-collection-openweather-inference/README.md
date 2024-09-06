@@ -1,0 +1,8 @@
+# REQUIRES DOCUMENTATION
+
+CELLS REF:
+
+fk_weather_grid_cells
+8866
+8799
+9075

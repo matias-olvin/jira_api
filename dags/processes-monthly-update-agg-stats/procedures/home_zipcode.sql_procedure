@@ -1,0 +1,266 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.zipcode`(
+    storage_project_id STRING,
+    place_home_dataset STRING,
+    zipcode_table STRING,
+    poi_visits_scaled_dataset STRING,
+    start_date STRING,
+    next_ds STRING,
+    device_zipcodes_dataset STRING,
+    static_demographics_data_dataset STRING,
+    zipcode_demographics_table STRING,
+    area_geometries_dataset STRING,
+    zipcodes_table STRING,
+    places_dataset STRING,
+    places_table STRING
+)
+BEGIN
+EXECUTE IMMEDIATE FORMAT(
+"""
+INSERT `%s.%s.%s`
+WITH
+poi_scaled_filtered_table AS (
+  SELECT
+    DISTINCT DATE_TRUNC(local_date, MONTH) AS local_date_org,
+    fk_sgplaces,
+    device_id
+  FROM
+    `%s.%s.*`
+  WHERE
+    local_date >= DATE_SUB(DATE_TRUNC("%s", MONTH), INTERVAL 2 MONTH)
+    AND local_date < DATE_TRUNC("%s", MONTH)
+    AND visit_score > 0 AND fk_sgbrands IS NOT NULL
+),
+visits_table AS (
+  SELECT
+    DISTINCT fk_sgplaces,
+    local_date,
+    device_id
+  FROM poi_scaled_filtered_table
+    CROSS JOIN UNNEST(
+      GENERATE_DATE_ARRAY(
+        local_date_org,
+        DATE_ADD(local_date_org, INTERVAL 2 MONTH),
+        INTERVAL 1 MONTH
+      )
+    ) AS local_date
+),
+device_zipcodes_deduplicated AS (
+  SELECT
+    device_id,
+    zip_id,
+    local_date
+  FROM
+    (
+      SELECT
+        device_id,
+        ANY_VALUE(zip_id) AS zip_id,
+        local_date
+      FROM
+        `%s.%s.*`
+      WHERE
+        local_date >= DATE_SUB(DATE_TRUNC("%s", MONTH), INTERVAL 2 MONTH)
+        AND local_date < DATE_TRUNC("%s", MONTH)
+      GROUP BY
+        device_id,
+        local_date
+    )
+    JOIN (
+      SELECT
+        device_id,
+        zip_id,
+        local_date,
+      FROM
+        `%s.%s.*`
+      WHERE
+        local_date >= DATE_SUB(DATE_TRUNC("%s", MONTH), INTERVAL 2 MONTH)
+        AND local_date < DATE_TRUNC("%s", MONTH)
+    ) USING(device_id, zip_id, local_date)
+),
+zipcode_exact_table AS (
+  SELECT
+    device_id,
+    zip_id,
+    local_date
+  FROM
+    visits_table
+    JOIN device_zipcodes_deduplicated USING(device_id, local_date)
+),
+zipcode_temporal_table AS(
+  SELECT
+    zip_id,
+    anti_exact_visits.device_id,
+    anti_exact_visits.local_date,
+    row_num,
+    MIN(row_num) OVER (
+      PARTITION BY anti_exact_visits.device_id,
+      anti_exact_visits.local_date
+    ) AS min_row_num
+  FROM
+    (
+      SELECT
+        device_id,
+        zip_id,
+        Row_Number() OVER (
+          PARTITION BY device_id
+          ORDER BY
+            local_date DESC
+        ) AS row_num,
+        local_date
+      FROM
+        device_zipcodes_deduplicated
+    ) AS date_ordered_zips
+    JOIN (
+      SELECT
+        device_id,
+        local_date
+      FROM
+        visits_table
+        LEFT JOIN zipcode_exact_table USING(device_id, local_date)
+      WHERE
+        zipcode_exact_table.device_id IS NULL
+    ) AS anti_exact_visits ON anti_exact_visits.device_id = date_ordered_zips.device_id
+    AND anti_exact_visits.local_date >= date_ordered_zips.local_date
+),
+zipcode_final_table AS (
+  SELECT
+    device_id,
+    zip_id,
+    local_date
+  FROM
+    zipcode_temporal_table
+  WHERE
+    min_row_num = row_num
+  UNION ALL
+  SELECT
+    *
+  FROM
+    zipcode_exact_table
+),
+visitors_location_table AS (
+  SELECT
+    DISTINCT device_id,
+    fk_sgplaces,
+    local_date,
+    fk_zipcodes
+  FROM
+    visits_table
+    JOIN (
+      SELECT
+        device_id,
+        local_date,
+        fk_zipcodes,
+      FROM
+        zipcode_final_table
+        JOIN `%s.%s.%s` USING(zip_id)
+    ) USING(device_id, local_date)
+  WHERE
+     fk_zipcodes IS NOT NULL
+),
+total_visitors_data AS (
+  SELECT
+    fk_sgplaces,
+    local_date,
+    COUNT(DISTINCT device_id) AS total_score
+  FROM
+    visitors_location_table
+  GROUP BY
+    fk_sgplaces,
+    local_date
+),
+location_vistors_data AS (
+  SELECT
+    fk_sgplaces,
+    local_date,
+    fk_zipcodes,
+    ROUND(visit_score / total_score * 100, 2) AS visit_percentage
+  FROM
+    (
+      SELECT
+        fk_sgplaces,
+        local_date,
+        fk_zipcodes,
+        visit_score,
+        ROW_NUMBER() OVER (
+          PARTITION BY fk_sgplaces,
+          local_date
+          ORDER BY
+            visit_score DESC
+        ) AS rank,
+        COUNT(DISTINCT fk_zipcodes) OVER (
+          PARTITION BY fk_sgplaces,
+          local_date
+        ) AS count_total
+      FROM
+        (
+          SELECT
+            fk_sgplaces,
+            local_date,
+            fk_zipcodes,
+            COUNT(DISTINCT device_id) AS visit_score
+          FROM
+            visitors_location_table
+          JOIN
+            (
+              SELECT
+                 pid AS fk_zipcodes,
+                 ST_GEOGFROMTEXT(point) AS polygon
+              FROM
+                `%s.%s.%s`
+            ) AS neighbourhoods
+          USING(fk_zipcodes)
+          JOIN
+            (
+              SELECT
+                 pid AS fk_sgplaces,
+                 polygon_wkt AS point
+              FROM
+                `%s.%s.%s`
+            ) AS places
+          USING(fk_sgplaces)
+          WHERE
+            fk_zipcodes IS NOT NULL
+            -- 100 miles range
+            AND (ST_DWITHIN(polygon, point, 160934))
+          GROUP BY
+            fk_sgplaces,
+            local_date,
+            fk_zipcodes
+        )
+    )
+    JOIN total_visitors_data USING(fk_sgplaces, local_date)
+  WHERE
+    count_total >= 5
+    AND rank <= 20
+)
+SELECT
+* EXCEPT(noise, visit_percentage, mean_percentage),
+ROUND(visit_percentage*noise * mean_percentage/(AVG(visit_percentage * noise) OVER (PARTITION BY fk_sgplaces, local_date)), 2) AS visit_percentage
+FROM
+(SELECT
+  * EXCEPT(noise),
+  (noise - (MIN(noise) OVER (PARTITION BY fk_sgplaces, local_date))) / (
+  (MAX(noise) OVER (PARTITION BY fk_sgplaces, local_date))
+   -(MIN(noise) OVER (PARTITION BY fk_sgplaces, local_date)))*0.26 + 0.83 AS noise
+  FROM
+  (SELECT
+  *,
+  FARM_FINGERPRINT(CONCAT(fk_sgplaces, CAST(fk_zipcodes AS STRING), CAST(local_date AS STRING)))/1000000 AS noise,
+  AVG(visit_percentage) OVER (PARTITION BY fk_sgplaces, local_date) AS mean_percentage
+FROM
+  location_vistors_data))
+WHERE
+    local_date >= DATE_TRUNC("%s", MONTH)
+    AND local_date < DATE_TRUNC("%s", MONTH)
+""",
+storage_project_id, place_home_dataset, zipcode_table,
+storage_project_id, poi_visits_scaled_dataset,
+start_date, next_ds,
+"storage-prod-olvin-com", device_zipcodes_dataset,
+start_date, next_ds,
+"storage-prod-olvin-com", device_zipcodes_dataset,
+start_date, next_ds,
+"storage-prod-olvin-com", static_demographics_data_dataset, zipcode_demographics_table,
+"storage-prod-olvin-com", area_geometries_dataset, zipcodes_table,
+storage_project_id, places_dataset, places_table,
+start_date, next_ds);
+END

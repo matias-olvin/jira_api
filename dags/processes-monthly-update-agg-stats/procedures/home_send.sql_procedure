@@ -1,0 +1,85 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.send`(
+    destination_table STRING,
+    storage_project_id STRING,
+    place_home_dataset STRING,
+    area_table STRING,
+    area_column STRING,
+    place_dataset STRING,
+    activity_table STRING,
+    ds STRING,
+    covid_dictionary_table STRING,
+    covid_table STRING
+)
+BEGIN
+EXECUTE IMMEDIATE FORMAT(
+"""
+CREATE
+OR REPLACE TABLE `%s`
+PARTITION BY local_date AS
+WITH
+dates_reference AS (
+    SELECT
+        local_date
+    FROM (
+        SELECT
+            GENERATE_DATE_ARRAY(MIN(local_date), DATE_ADD(MAX(local_date), INTERVAL 1 MONTH)) AS date_array
+        FROM `%s.%s.%s`
+    )
+    CROSS JOIN UNNEST(date_array) AS local_date
+),
+covid_restrictions_table AS (
+    SELECT
+        fk_sgplaces,
+        local_date,
+    FROM (
+        SELECT
+            fk_sgplaces,
+            DATE_TRUNC(local_date, MONTH) AS local_date,
+            COALESCE(factor_county, factor_city, factor_state, 0.0) AS covid_factor,
+        FROM (
+            SELECT
+                *
+            FROM
+                `%s`
+            CROSS JOIN dates_reference
+        )
+        LEFT JOIN (SELECT local_date, identifier AS identifier_county_restrictions, factor AS factor_county FROM `%s`)
+        USING (identifier_county_restrictions, local_date)
+        LEFT JOIN (SELECT local_date, identifier AS identifier_city_restrictions, factor AS factor_city FROM `%s`)
+        USING (identifier_city_restrictions, local_date)
+        LEFT JOIN (SELECT local_date, identifier AS identifier_state_restrictions, factor AS factor_state FROM `%s`)
+        USING (identifier_state_restrictions, local_date)
+    )
+    GROUP BY
+        local_date,
+        fk_sgplaces
+    HAVING NOT (AVG(covid_factor) < 5)
+)
+SELECT
+  local_date,
+  fk_sgplaces,
+  REPLACE(REPLACE(TO_JSON_STRING(ARRAY_AGG(STRUCT(CAST(%s AS STRING) AS %s, visit_score))), ',"visit_score"', ''), '"%s":', '') AS locations,
+FROM
+  `%s.%s.%s`
+JOIN
+  (
+    SELECT
+      fk_sgplaces
+    FROM
+      `%s.%s.%s`
+    WHERE activity IN ('active', 'watch_list', 'inactive') AND run_date = "%s"
+  )
+USING(fk_sgplaces)
+LEFT JOIN covid_restrictions_table USING (fk_sgplaces, local_date)
+WHERE covid_restrictions_table.fk_sgplaces IS NULL
+GROUP BY local_date, fk_sgplaces
+""",
+destination_table,
+-- dates_reference
+storage_project_id, place_home_dataset, area_table,
+-- covid_restrictions_table
+covid_dictionary_table, covid_table, covid_table, covid_table,
+-- Final table
+area_column, area_column, area_column, storage_project_id,
+place_home_dataset, area_table, storage_project_id, place_dataset, activity_table, ds);
+END

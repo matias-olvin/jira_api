@@ -1,0 +1,2473 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.query_core_v2`(
+    OUT demographics_query STRING
+)
+OPTIONS(
+   description="""This procedure returns a query section that describes the demographics columns derived from CAMEO data. It is designed to be used in place of the columns definition so the extremely long code does not need to be repeated across different queries.
+   The procedure does not include any input values as it is completely agnostic regarding the tables used as long as they contain the required demographics columns.
+   """
+ )
+BEGIN
+SET demographics_query = """
+          SUM(pMarit_Never * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pMarit_Never IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pMarit_Never,
+          SUM(pMarit_Yes_SpousePresent * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pMarit_Yes_SpousePresent IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pMarit_Yes_SpousePresent,
+          SUM(pMarit_Separated * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pMarit_Separated IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pMarit_Separated,
+          SUM(pMarit_Other * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pMarit_Other IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pMarit_Other,
+          SUM(pMarit_Widowed * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pMarit_Widowed IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pMarit_Widowed,
+          SUM(pMarit_Divorced * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pMarit_Divorced IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pMarit_Divorced,
+          SUM(pEdAttain_Non * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_Non IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_Non,
+          SUM(pEdAttain_Nurs_4thGrd * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_Nurs_4thGrd IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_Nurs_4thGrd,
+          SUM(pEdAttain_5_6thGrd * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_5_6thGrd IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_5_6thGrd,
+          SUM(pEdAttain_7_8thGrd * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_7_8thGrd IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_7_8thGrd,
+          SUM(pEdAttain_9thGrd * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_9thGrd IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_9thGrd,
+          SUM(pEdAttain_10thGrd * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_10thGrd IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_10thGrd,
+          SUM(pEdAttain_11thGrd * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_11thGrd IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_11thGrd,
+          SUM(pEdAttain_12thGrd * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_12thGrd IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_12thGrd,
+          SUM(pEdAttain_HighSch_Grad * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_HighSch_Grad IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_HighSch_Grad,
+          SUM(pEdAttain_College_u1yr * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_College_u1yr IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_College_u1yr,
+          SUM(
+            pEdAttain_College_1pl_nodegree * visit_score * weight
+          ) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_College_1pl_nodegree IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_College_1pl_nodegree,
+          SUM(pEdAttain_AssocDegree * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_AssocDegree IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_AssocDegree,
+          SUM(pEdAttain_BachDegree * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_BachDegree IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_BachDegree,
+          SUM(pEdAttain_MastDegree * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_MastDegree IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_MastDegree,
+          SUM(pEdAttain_ProfSchDegree * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_ProfSchDegree IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_ProfSchDegree,
+          SUM(pEdAttain_DoctDegree * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEdAttain_DoctDegree IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEdAttain_DoctDegree,
+          SUM(pEarnings_Yes * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pEarnings_Yes IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pEarnings_Yes,
+          SUM(pWageSal_Yes * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pWageSal_Yes IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pWageSal_Yes,
+          SUM(pSelfEmpInc_Yes * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pSelfEmpInc_Yes IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pSelfEmpInc_Yes,
+          SUM(pIntDivdRentInc_Yes * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pIntDivdRentInc_Yes IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pIntDivdRentInc_Yes,
+          SUM(pSocSecInc_Yes * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pSocSecInc_Yes IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pSocSecInc_Yes,
+          SUM(pSupSecInc_Yes * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pSupSecInc_Yes IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pSupSecInc_Yes,
+          SUM(pPubAssistInc_Yes * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPubAssistInc_Yes IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPubAssistInc_Yes,
+          SUM(pRetirInc_Yes * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pRetirInc_Yes IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pRetirInc_Yes,
+          SUM(pOtherInc_Yes * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pOtherInc_Yes IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pOtherInc_Yes,
+          SUM(pInd_AgricForFish * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_AgricForFish IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_AgricForFish,
+          SUM(pInd_MineExtract * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_MineExtract IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_MineExtract,
+          SUM(pInd_Construct * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_Construct IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_Construct,
+          SUM(pInd_Manuf * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pInd_Manuf IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pInd_Manuf,
+          SUM(pInd_WholeTrade * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_WholeTrade IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_WholeTrade,
+          SUM(pInd_RetTrade * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_RetTrade IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_RetTrade,
+          SUM(pInd_TransWarehous * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_TransWarehous IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_TransWarehous,
+          SUM(pInd_Utilities * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_Utilities IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_Utilities,
+          SUM(pInd_Info * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pInd_Info IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pInd_Info,
+          SUM(pInd_FinancInsur * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_FinancInsur IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_FinancInsur,
+          SUM(pInd_RealEst * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pInd_RealEst IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pInd_RealEst,
+          SUM(pInd_ProfSciTech * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_ProfSciTech IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_ProfSciTech,
+          SUM(pInd_Management * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_Management IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_Management,
+          SUM(pInd_AdminSupport * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_AdminSupport IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_AdminSupport,
+          SUM(pInd_Educ * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pInd_Educ IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pInd_Educ,
+          SUM(pInd_HealthSoc * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_HealthSoc IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_HealthSoc,
+          SUM(pInd_ArtsEntsRec * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_ArtsEntsRec IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_ArtsEntsRec,
+          SUM(pInd_AccomFood * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_AccomFood IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_AccomFood,
+          SUM(pInd_OtherPrivat * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_OtherPrivat IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_OtherPrivat,
+          SUM(pInd_PublicAdmin * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pInd_PublicAdmin IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pInd_PublicAdmin,
+          SUM(pRentAmtGros_uUSD100 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pRentAmtGros_uUSD100 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pRentAmtGros_uUSD100,
+          SUM(pRentAmtGros_USD100_149 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD100_149 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD100_149,
+          SUM(pRentAmtGros_USD150_199 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD150_199 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD150_199,
+          SUM(pRentAmtGros_USD200_249 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD200_249 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD200_249,
+          SUM(pRentAmtGros_USD250_299 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD250_299 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD250_299,
+          SUM(pRentAmtGros_USD300_349 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD300_349 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD300_349,
+          SUM(pRentAmtGros_USD350_399 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD350_399 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD350_399,
+          SUM(pRentAmtGros_USD400_449 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD400_449 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD400_449,
+          SUM(pRentAmtGros_USD450_499 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD450_499 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD450_499,
+          SUM(pRentAmtGros_USD500_549 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD500_549 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD500_549,
+          SUM(pRentAmtGros_USD550_599 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD550_599 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD550_599,
+          SUM(pRentAmtGros_USD600_649 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD600_649 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD600_649,
+          SUM(pRentAmtGros_USD650_699 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD650_699 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD650_699,
+          SUM(pRentAmtGros_USD700_749 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD700_749 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD700_749,
+          SUM(pRentAmtGros_USD750_799 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD750_799 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD750_799,
+          SUM(pRentAmtGros_USD800_899 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD800_899 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD800_899,
+          SUM(pRentAmtGros_USD900_999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD900_999 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD900_999,
+          SUM(pRentAmtGros_USD1000_1249 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD1000_1249 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD1000_1249,
+          SUM(pRentAmtGros_USD1250_1499 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD1250_1499 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD1250_1499,
+          SUM(pRentAmtGros_USD1500_1999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_USD1500_1999 IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD1500_1999,
+          SUM(pRentAmtGros_USD2000pl * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pRentAmtGros_USD2000pl IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pRentAmtGros_USD2000pl,
+          SUM(pRentAmtGros_NoCashRent * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pRentAmtGros_NoCashRent IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pRentAmtGros_NoCashRent,
+          SUM(pPropVal_uUSD10k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_uUSD10k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_uUSD10k,
+          SUM(pPropVal_USD10k_149k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD10k_149k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD10k_149k,
+          SUM(pPropVal_USD15k_19k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD15k_19k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD15k_19k,
+          SUM(pPropVal_USD20k_24k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD20k_24k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD20k_24k,
+          SUM(pPropVal_USD25k_29k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD25k_29k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD25k_29k,
+          SUM(pPropVal_USD30k_34k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD30k_34k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD30k_34k,
+          SUM(pPropVal_USD35k_39k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD35k_39k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD35k_39k,
+          SUM(pPropVal_USD40k_49k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD40k_49k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD40k_49k,
+          SUM(pPropVal_USD50k_59k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD50k_59k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD50k_59k,
+          SUM(pPropVal_USD60k_69k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD60k_69k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD60k_69k,
+          SUM(pPropVal_USD70k_79k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD70k_79k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD70k_79k,
+          SUM(pPropVal_USD80k_89k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD80k_89k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD80k_89k,
+          SUM(pPropVal_USD90k_99k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD90k_99k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD90k_99k,
+          SUM(pPropVal_USD100k_124k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD100k_124k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD100k_124k,
+          SUM(pPropVal_USD125k_149k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD125k_149k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD125k_149k,
+          SUM(pPropVal_USD150k_174k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD150k_174k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD150k_174k,
+          SUM(pPropVal_USD175k_199k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD175k_199k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD175k_199k,
+          SUM(pPropVal_USD200k_249k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD200k_249k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD200k_249k,
+          SUM(pPropVal_USD250k_299k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD250k_299k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD250k_299k,
+          SUM(pPropVal_USD300k_399k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD300k_399k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD300k_399k,
+          SUM(pPropVal_USD400k_499k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD400k_499k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD400k_499k,
+          SUM(pPropVal_USD500k_749k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD500k_749k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD500k_749k,
+          SUM(pPropVal_USD750k_999k * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD750k_999k IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD750k_999k,
+          SUM(pPropVal_USD1Mpl * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pPropVal_USD1Mpl IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pPropVal_USD1Mpl,
+          SUM(pAge_0_4 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(IF(pAge_0_4 IS NULL, NULL, visit_score * weight)),
+              1
+            )
+          ) AS pAge_0_4,
+          SUM(pAge_5_9 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(IF(pAge_5_9 IS NULL, NULL, visit_score * weight)),
+              1
+            )
+          ) AS pAge_5_9,
+          SUM(pAge_10_14 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_10_14 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_10_14,
+          SUM(pAge_15_17 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_15_17 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_15_17,
+          SUM(pAge_18_19 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_18_19 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_18_19,
+          SUM(pAge_20 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(IF(pAge_20 IS NULL, NULL, visit_score * weight)),
+              1
+            )
+          ) AS pAge_20,
+          SUM(pAge_21 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(IF(pAge_21 IS NULL, NULL, visit_score * weight)),
+              1
+            )
+          ) AS pAge_21,
+          SUM(pAge_22_24 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_22_24 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_22_24,
+          SUM(pAge_25_29 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_25_29 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_25_29,
+          SUM(pAge_30_34 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_30_34 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_30_34,
+          SUM(pAge_35_39 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_35_39 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_35_39,
+          SUM(pAge_40_44 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_40_44 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_40_44,
+          SUM(pAge_45_49 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_45_49 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_45_49,
+          SUM(pAge_50_54 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_50_54 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_50_54,
+          SUM(pAge_55_59 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_55_59 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_55_59,
+          SUM(pAge_60_61 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_60_61 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_60_61,
+          SUM(pAge_62_64 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_62_64 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_62_64,
+          SUM(pAge_65_66 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_65_66 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_65_66,
+          SUM(pAge_67_69 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_67_69 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_67_69,
+          SUM(pAge_70_74 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_70_74 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_70_74,
+          SUM(pAge_75_79 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_75_79 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_75_79,
+          SUM(pAge_80_84 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_80_84 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_80_84,
+          SUM(pAge_85pl * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAge_85pl IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pAge_85pl,
+          SUM(pHhld_Husb_Wife * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhld_Husb_Wife IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhld_Husb_Wife,
+          SUM(pHhld_male_nowife * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhld_male_nowife IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhld_male_nowife,
+          SUM(pHhld_Female_nohusb * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhld_Female_nohusb IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhld_Female_nohusb,
+          SUM(pHHld_livealone * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHHld_livealone IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHHld_livealone,
+          SUM(pHhld_Notlivealone * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhld_Notlivealone IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhld_Notlivealone,
+          SUM(pHhsize_Fam2 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pHhsize_Fam2 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pHhsize_Fam2,
+          SUM(pHhsize_Fam3 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pHhsize_Fam3 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pHhsize_Fam3,
+          SUM(pHhsize_Fam4 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pHhsize_Fam4 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pHhsize_Fam4,
+          SUM(pHhsize_Fam5 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pHhsize_Fam5 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pHhsize_Fam5,
+          SUM(pHhsize_Fam6 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pHhsize_Fam6 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS pHhsize_Fam6,
+          SUM(pHhsize_Fam7pl * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhsize_Fam7pl IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhsize_Fam7pl,
+          SUM(pHhsize_NonFam1 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhsize_NonFam1 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhsize_NonFam1,
+          SUM(pHhsize_NonFam2 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhsize_NonFam2 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhsize_NonFam2,
+          SUM(pHhsize_NonFam3 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhsize_NonFam3 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhsize_NonFam3,
+          SUM(pHhsize_NonFam4 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhsize_NonFam4 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhsize_NonFam4,
+          SUM(pHhsize_NonFam5 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhsize_NonFam5 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhsize_NonFam5,
+          SUM(pHhsize_NonFam6 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhsize_NonFam6 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhsize_NonFam6,
+          SUM(pHhsize_NonFam7pl * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhsize_NonFam7pl IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhsize_NonFam7pl,
+          SUM(pAgeOfHHlder_Fam_15_24yrs * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAgeOfHHlder_Fam_15_24yrs IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_Fam_15_24yrs,
+          SUM(pAgeOfHHlder_Fam_25_34yrs * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAgeOfHHlder_Fam_25_34yrs IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_Fam_25_34yrs,
+          SUM(pAgeOfHHlder_Fam_35_44yrs * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAgeOfHHlder_Fam_35_44yrs IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_Fam_35_44yrs,
+          SUM(pAgeOfHHlder_Fam_45_54yrs * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAgeOfHHlder_Fam_45_54yrs IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_Fam_45_54yrs,
+          SUM(pAgeOfHHlder_Fam_55_59yrs * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAgeOfHHlder_Fam_55_59yrs IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_Fam_55_59yrs,
+          SUM(pAgeOfHHlder_Fam_60_64yrs * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAgeOfHHlder_Fam_60_64yrs IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_Fam_60_64yrs,
+          SUM(pAgeOfHHlder_Fam_65_74yrs * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAgeOfHHlder_Fam_65_74yrs IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_Fam_65_74yrs,
+          SUM(pAgeOfHHlder_Fam_75_84yrs * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAgeOfHHlder_Fam_75_84yrs IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_Fam_75_84yrs,
+          SUM(pAgeOfHHlder_Fam_85yrspl * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pAgeOfHHlder_Fam_85yrspl IS NULL, NULL, weight)
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_Fam_85yrspl,
+          SUM(
+            pAgeOfHHlder_NonFam_15_24yrs * visit_score * weight
+          ) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pAgeOfHHlder_NonFam_15_24yrs IS NULL,
+                  NULL,
+                  weight
+                )
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_NonFam_15_24yrs,
+          SUM(
+            pAgeOfHHlder_NonFam_25_34yrs * visit_score * weight
+          ) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pAgeOfHHlder_NonFam_25_34yrs IS NULL,
+                  NULL,
+                  weight
+                )
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_NonFam_25_34yrs,
+          SUM(
+            pAgeOfHHlder_NonFam_35_44yrs * visit_score * weight
+          ) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pAgeOfHHlder_NonFam_35_44yrs IS NULL,
+                  NULL,
+                  weight
+                )
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_NonFam_35_44yrs,
+          SUM(
+            pAgeOfHHlder_NonFam_45_54yrs * visit_score * weight
+          ) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pAgeOfHHlder_NonFam_45_54yrs IS NULL,
+                  NULL,
+                  weight
+                )
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_NonFam_45_54yrs,
+          SUM(
+            pAgeOfHHlder_NonFam_55_59yrs * visit_score * weight
+          ) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pAgeOfHHlder_NonFam_55_59yrs IS NULL,
+                  NULL,
+                  weight
+                )
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_NonFam_55_59yrs,
+          SUM(
+            pAgeOfHHlder_NonFam_60_64yrs * visit_score * weight
+          ) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pAgeOfHHlder_NonFam_60_64yrs IS NULL,
+                  NULL,
+                  weight
+                )
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_NonFam_60_64yrs,
+          SUM(
+            pAgeOfHHlder_NonFam_65_74yrs * visit_score * weight
+          ) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pAgeOfHHlder_NonFam_65_74yrs IS NULL,
+                  NULL,
+                  weight
+                )
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_NonFam_65_74yrs,
+          SUM(
+            pAgeOfHHlder_NonFam_75_84yrs * visit_score * weight
+          ) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pAgeOfHHlder_NonFam_75_84yrs IS NULL,
+                  NULL,
+                  weight
+                )
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_NonFam_75_84yrs,
+          SUM(
+            pAgeOfHHlder_NonFam_85yrspl * visit_score * weight
+          ) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pAgeOfHHlder_NonFam_85yrspl IS NULL,
+                  NULL,
+                  weight
+                )
+              ),
+              1
+            )
+          ) AS pAgeOfHHlder_NonFam_85yrspl,
+          SUM(pHhAgeTypPoC_4 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_4 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_4,
+          SUM(pHhAgeTypPoC_5 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_5 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_5,
+          SUM(pHhAgeTypPoC_8 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_8 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_8,
+          SUM(pHhAgeTypPoC_9 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_9 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_9,
+          SUM(pHhAgeTypPoC_11 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_11 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_11,
+          SUM(pHhAgeTypPoC_12 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_12 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_12,
+          SUM(pHhAgeTypPoC_14 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_14 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_14,
+          SUM(pHhAgeTypPoC_15 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_15 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_15,
+          SUM(pHhAgeTypPoC_19 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_19 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_19,
+          SUM(pHhAgeTypPoC_20 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_20 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_20,
+          SUM(pHhAgeTypPoC_23 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_23 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_23,
+          SUM(pHhAgeTypPoC_24 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_24 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_24,
+          SUM(pHhAgeTypPoC_26 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_26 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_26,
+          SUM(pHhAgeTypPoC_27 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_27 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_27,
+          SUM(pHhAgeTypPoC_29 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_29 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_29,
+          SUM(pHhAgeTypPoC_30 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pHhAgeTypPoC_30 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pHhAgeTypPoC_30,
+          SUM(pTenur_Owned_wMort * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pTenur_Owned_wMort IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pTenur_Owned_wMort,
+          SUM(pTenur_Owned_Clear * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pTenur_Owned_Clear IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pTenur_Owned_Clear,
+          SUM(pTenur_RenterOcc * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pTenur_RenterOcc IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pTenur_RenterOcc,
+          SUM(pmGrRentPC_u20 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pmGrRentPC_u20 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pmGrRentPC_u20,
+          SUM(pmGrRentPC_20_25 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pmGrRentPC_20_25 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pmGrRentPC_20_25,
+          SUM(pmGrRentPC_25_30 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pmGrRentPC_25_30 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pmGrRentPC_25_30,
+          SUM(pmGrRentPC_30_35 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pmGrRentPC_30_35 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pmGrRentPC_30_35,
+          SUM(pmGrRentPC_35p * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pmGrRentPC_35p IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pmGrRentPC_35p,
+          SUM(pmGrMortPC_u20 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pmGrMortPC_u20 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pmGrMortPC_u20,
+          SUM(pmGrMortPC_20_25 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pmGrMortPC_20_25 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pmGrMortPC_20_25,
+          SUM(pmGrMortPC_25_30 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pmGrMortPC_25_30 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pmGrMortPC_25_30,
+          SUM(pmGrMortPC_30_35 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pmGrMortPC_30_35 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pmGrMortPC_30_35,
+          SUM(pmGrMortPC_35p * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pmGrMortPC_35p IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS pmGrMortPC_35p,
+          SUM(white * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(IF(white IS NULL, NULL, visit_score * weight)),
+              1
+            )
+          ) AS white,
+          SUM(black_or_african_american * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  black_or_african_american IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS black_or_african_american,
+          SUM(
+            american_indian_or_alaskan_native * visit_score * weight
+          ) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  american_indian_or_alaskan_native IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS american_indian_or_alaskan_native,
+          SUM(asian * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(IF(asian IS NULL, NULL, visit_score * weight)),
+              1
+            )
+          ) AS asian,
+          SUM(
+            native_hawaiian_and_other_pacific_islander * visit_score * weight
+          ) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  native_hawaiian_and_other_pacific_islander IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS native_hawaiian_and_other_pacific_islander,
+          SUM(other_race * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(other_race IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS other_race,
+          SUM(two_or_more_races * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  two_or_more_races IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS two_or_more_races,
+          SUM(visit_score * IFNULL(weight, 1)) AS total_score,
+          SUM(visit_score * weight) AS known_demos_score,
+          -- Be careful with null income
+          SUM(IncomeFocus * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(IncomeFocus IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS IncomeFocus,
+          SUM(pm_uUSD10000 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(pm_uUSD10000 IS NULL, NULL, visit_score * weight)
+              ),
+              1
+            )
+          ) AS fk_incomes_01,
+          SUM(pm_USD10000_USD14999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD10000_USD14999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_02,
+          SUM(pm_USD15000_USD19999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD15000_USD19999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_03,
+          SUM(pm_USD20000_USD24999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD20000_USD24999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_04,
+          SUM(pm_USD25000_USD29999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD25000_USD29999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_05,
+          SUM(pm_USD30000_USD34999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD30000_USD34999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_06,
+          SUM(pm_USD35000_USD39999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD35000_USD39999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_07,
+          SUM(pm_USD40000_USD44999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD40000_USD44999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_08,
+          SUM(pm_USD45000_USD49999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD45000_USD49999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_09,
+          SUM(pm_USD50000_USD59999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD50000_USD59999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_10,
+          SUM(pm_USD60000_USD74999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD60000_USD74999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_11,
+          SUM(pm_USD75000_USD99999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD75000_USD99999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_12,
+          SUM(pm_USD100000_USD124999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD100000_USD124999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_13,
+          SUM(pm_USD125000_USD149999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD125000_USD149999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_14,
+          SUM(pm_USD150000_USD199999 * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD150000_USD199999 IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_15,
+          SUM(pm_USD200000p * visit_score * weight) / GREATEST(
+            1,
+            IFNULL(
+              SUM(
+                IF(
+                  pm_USD200000p IS NULL,
+                  NULL,
+                  visit_score * weight
+                )
+              ),
+              1
+            )
+          ) AS fk_incomes_16,
+--      SUM(fk_life_stage_1 * visit_score * weight) / GREATEST(1, IFNULL(SUM(IF(fk_life_stage_1 IS NULL, NULL, visit_score * weight)), 1)) AS fk_life_stage_1,
+--      SUM(fk_life_stage_2 * visit_score * weight) / GREATEST(1, IFNULL(SUM(IF(fk_life_stage_1 IS NULL, NULL, visit_score * weight)), 1)) AS fk_life_stage_2,
+--      SUM(fk_life_stage_3 * visit_score * weight) / GREATEST(1, IFNULL(SUM(IF(fk_life_stage_1 IS NULL, NULL, visit_score * weight)), 1)) AS fk_life_stage_3,
+--      SUM(fk_life_stage_4 * visit_score * weight) / GREATEST(1, IFNULL(SUM(IF(fk_life_stage_1 IS NULL, NULL, visit_score * weight)), 1)) AS fk_life_stage_4,
+--      SUM(fk_life_stage_5 * visit_score * weight) / GREATEST(1, IFNULL(SUM(IF(fk_life_stage_1 IS NULL, NULL, visit_score * weight)), 1)) AS fk_life_stage_5,
+""";
+END

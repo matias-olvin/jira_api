@@ -1,0 +1,50 @@
+  CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.input_table_v2`(
+    input_table STRING,
+    OUT demographics_query STRING
+)
+OPTIONS(
+   description="""This procedure joins an input visits table with the static demographics tables and returns the corresponding SQL query."""
+ )
+BEGIN
+SET demographics_query = FORMAT("""
+    SELECT
+    * EXCEPT(zip_id, CAMEO_USA, fk_zipcodes),
+    IF(CAST(CAMEO_INTL - FLOOR(CAMEO_INTL/10)*10 AS INT64) = 1, 100, 0) AS fk_life_stage_1,
+    IF(CAST(CAMEO_INTL - FLOOR(CAMEO_INTL/10)*10 AS INT64) = 2, 100, 0) AS fk_life_stage_2,
+    IF(CAST(CAMEO_INTL - FLOOR(CAMEO_INTL/10)*10 AS INT64) = 3, 100, 0) AS fk_life_stage_3,
+    IF(CAST(CAMEO_INTL - FLOOR(CAMEO_INTL/10)*10 AS INT64) = 4, 100, 0) AS fk_life_stage_4,
+    IF(CAST(CAMEO_INTL - FLOOR(CAMEO_INTL/10)*10 AS INT64) = 5, 100, 0) AS fk_life_stage_5
+
+  FROM
+    %s
+    JOIN (
+      SELECT
+        zip_id,
+        CAMEO_USA,
+        CAMEO_INTL,
+        IncomeFocus,
+        weight,
+        fk_zipcodes
+      FROM
+        `storage-dev-olvin-com.static_demographics_data.zipcode_demographics`
+    ) USING(zip_id)
+    LEFT JOIN `storage-dev-olvin-com.static_demographics_data.cameo_categories_processed` USING(CAMEO_USA)
+    LEFT JOIN (
+      SELECT
+        zip AS fk_zipcodes,
+        population_count,
+        white / population_count * 100 AS white,
+        black_or_african_american / population_count * 100 AS black_or_african_american,
+        american_indian_or_alaskan_native / population_count * 100 AS american_indian_or_alaskan_native,
+        asian / population_count * 100 AS asian,
+        native_hawaiian_and_other_pacific_islander / population_count * 100 AS native_hawaiian_and_other_pacific_islander,
+        other_race / population_count * 100 AS other_race,
+        two_or_more_races / population_count * 100 AS two_or_more_races,
+      FROM
+        `storage-dev-olvin-com.static_demographics_data.census_zipcodes`
+      WHERE
+        population_count > 0
+    ) USING(fk_zipcodes)
+""",
+input_table);
+END

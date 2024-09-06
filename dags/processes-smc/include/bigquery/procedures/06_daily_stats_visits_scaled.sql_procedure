@@ -1,0 +1,474 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.daily_stats_visits_scaled`(storage_project_id STRING, metrics_dataset STRING, daily_stats_visits_scaled_table STRING, poi_visits_scaled_dataset STRING, d DATE)
+BEGIN
+EXECUTE IMMEDIATE CONCAT(
+FORMAT("""
+    INSERT `%s.%s.%s`
+    WITH
+    poi_visits_table AS (
+    SELECT
+        `storage-prod-olvin-com.functions`.point_level2token(lat_long_visit_point, 8) AS s2_token,
+        IFNULL(publisher_id, 0) AS publisher_id,
+        device_id,
+        CASE 
+            WHEN fk_sgbrands IS NOT NULL THEN TRUE
+            ELSE FALSE
+        END AS branded,
+        visit_score,
+        visit_score_steps,
+        CASE
+        WHEN local_hour < 6 OR local_hour > 22 THEN "night"
+        WHEN local_hour > 6
+        AND local_hour < 22 THEN "day"
+        ELSE
+        NULL
+    END
+        AS part_of_day
+    FROM
+    `%s.%s.*`
+    WHERE local_date = '%s' AND visit_score>0),
+""",
+storage_project_id, metrics_dataset, daily_stats_visits_scaled_table, storage_project_id, poi_visits_scaled_dataset,FORMAT_DATE('%Y-%m-%d',d)),
+FORMAT("""
+    visits_table_all AS (
+    SELECT
+        s2_token,
+        publisher_id,
+        part_of_day,
+        branded,
+        COUNT(DISTINCT device_id) AS d_devices_visits,
+        CAST(SUM(visit_score) AS INT64) AS n_visits,
+        AVG(visit_score_steps.opening) AS overlap_mean,
+        STRUCT(sum(visit_score_steps.original) as original,
+        sum(visit_score_steps.opening) as opening,
+        sum(visit_score_steps.weighted) as weighted,
+        sum(visit_score_steps.visit_share) as visit_share,
+        sum(visit_score_steps.daily_estimation) as daily_estimation,
+        sum(visit_score_steps.gtvm_factor) as gtvm_factor
+        ) visit_score_steps_sum,
+        STRUCT(1 as original,
+AVG(visit_score_steps.opening/NULLIF(visit_score_steps.original, 0)) as opening,
+AVG(visit_score_steps.weighted/NULLIF(visit_score_steps.opening, 0)) as weighted,
+AVG(visit_score_steps.visit_share/NULLIF(visit_score_steps.weighted, 0)) as visit_share,
+AVG(visit_score_steps.daily_estimation/NULLIF(visit_score_steps.visit_share, 0)) as daily_estimation,
+AVG(visit_score_steps.gtvm_factor/NULLIF(visit_score_steps.daily_estimation, 0)) as gtvm_factor
+) factor_steps_avg,
+        CAST(SUM(
+        IF
+            (visit_score > 0.75,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_none,
+        CAST(SUM(
+        IF
+            (visit_score < 0.75
+            AND visit_score >= 0.25,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_low,
+        CAST(SUM(
+        IF
+            (visit_score < 0.25
+            AND visit_score >= 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_medium,
+        CAST(SUM(
+        IF
+            (visit_score < 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_high
+    FROM
+        poi_visits_table
+    WHERE
+        part_of_day IS NOT NULL
+    GROUP BY
+        s2_token,
+        publisher_id,
+        part_of_day,
+        branded
+    UNION ALL
+    SELECT
+        NULL AS s2_token,
+        publisher_id,
+        part_of_day,
+        branded,
+        COUNT(DISTINCT device_id) AS d_devices_visits,
+        CAST(SUM(visit_score) AS INT64) AS n_visits,
+        AVG(visit_score_steps.opening) AS overlap_mean,
+        STRUCT(sum(visit_score_steps.original) as original,
+        sum(visit_score_steps.opening) as opening,
+        sum(visit_score_steps.weighted) as weighted,
+        sum(visit_score_steps.visit_share) as visit_share,
+        sum(visit_score_steps.daily_estimation) as daily_estimation,
+        sum(visit_score_steps.gtvm_factor) as gtvm_factor
+        ) visit_score_steps_sum,
+        STRUCT(1 as original,
+AVG(visit_score_steps.opening/NULLIF(visit_score_steps.original, 0)) as opening,
+AVG(visit_score_steps.weighted/NULLIF(visit_score_steps.opening, 0)) as weighted,
+AVG(visit_score_steps.visit_share/NULLIF(visit_score_steps.weighted, 0)) as visit_share,
+AVG(visit_score_steps.daily_estimation/NULLIF(visit_score_steps.visit_share, 0)) as daily_estimation,
+AVG(visit_score_steps.gtvm_factor/NULLIF(visit_score_steps.daily_estimation, 0)) as gtvm_factor
+) factor_steps_avg,
+        CAST(SUM(
+        IF
+            (visit_score > 0.75,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_none,
+        CAST(SUM(
+        IF
+            (visit_score < 0.75
+            AND visit_score >= 0.25,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_low,
+        CAST(SUM(
+        IF
+            (visit_score < 0.25
+            AND visit_score >= 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_medium,
+        CAST(SUM(
+        IF
+            (visit_score < 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_high
+    FROM
+        poi_visits_table
+    WHERE
+        part_of_day IS NOT NULL
+    GROUP BY
+        publisher_id,
+        branded,
+        part_of_day
+    UNION ALL
+    SELECT
+        s2_token,
+        NULL AS publisher_id,
+        part_of_day,
+        branded,
+        COUNT(DISTINCT device_id) AS d_devices_visits,
+        CAST(SUM(visit_score) AS INT64) AS n_visits,
+        AVG(visit_score_steps.opening) AS overlap_mean,
+        STRUCT(sum(visit_score_steps.original) as original,
+        sum(visit_score_steps.opening) as opening,
+        sum(visit_score_steps.weighted) as weighted,
+        sum(visit_score_steps.visit_share) as visit_share,
+        sum(visit_score_steps.daily_estimation) as daily_estimation,
+        sum(visit_score_steps.gtvm_factor) as gtvm_factor
+        ) visit_score_steps_sum,
+        STRUCT(1 as original,
+AVG(visit_score_steps.opening/NULLIF(visit_score_steps.original, 0)) as opening,
+AVG(visit_score_steps.weighted/NULLIF(visit_score_steps.opening, 0)) as weighted,
+AVG(visit_score_steps.visit_share/NULLIF(visit_score_steps.weighted, 0)) as visit_share,
+AVG(visit_score_steps.daily_estimation/NULLIF(visit_score_steps.visit_share, 0)) as daily_estimation,
+AVG(visit_score_steps.gtvm_factor/NULLIF(visit_score_steps.daily_estimation, 0)) as gtvm_factor
+) factor_steps_avg,
+        CAST(SUM(
+        IF
+            (visit_score > 0.75,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_none,
+        CAST(SUM(
+        IF
+            (visit_score < 0.75
+            AND visit_score >= 0.25,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_low,
+        CAST(SUM(
+        IF
+            (visit_score < 0.25
+            AND visit_score >= 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_medium,
+        CAST(SUM(
+        IF
+            (visit_score < 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_high
+    FROM
+        poi_visits_table
+    WHERE
+        part_of_day IS NOT NULL
+    GROUP BY
+
+        s2_token,
+        branded,
+        part_of_day
+    UNION ALL
+    SELECT
+
+        NULL AS s2_token,
+        NULL AS publisher_id,
+        part_of_day,
+        branded,
+        COUNT(DISTINCT device_id) AS d_devices_visits,
+        CAST(SUM(visit_score) AS INT64) AS n_visits,
+        AVG(visit_score_steps.opening) AS overlap_mean,
+        STRUCT(sum(visit_score_steps.original) as original,
+        sum(visit_score_steps.opening) as opening,
+        sum(visit_score_steps.weighted) as weighted,
+        sum(visit_score_steps.visit_share) as visit_share,
+        sum(visit_score_steps.daily_estimation) as daily_estimation,
+        sum(visit_score_steps.gtvm_factor) as gtvm_factor
+        ) visit_score_steps_sum,
+        STRUCT(1 as original,
+AVG(visit_score_steps.opening/NULLIF(visit_score_steps.original, 0)) as opening,
+AVG(visit_score_steps.weighted/NULLIF(visit_score_steps.opening, 0)) as weighted,
+AVG(visit_score_steps.visit_share/NULLIF(visit_score_steps.weighted, 0)) as visit_share,
+AVG(visit_score_steps.daily_estimation/NULLIF(visit_score_steps.visit_share, 0)) as daily_estimation,
+AVG(visit_score_steps.gtvm_factor/NULLIF(visit_score_steps.daily_estimation, 0)) as gtvm_factor
+) factor_steps_avg,
+        CAST(SUM(
+        IF
+            (visit_score > 0.75,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_none,
+        CAST(SUM(
+        IF
+            (visit_score < 0.75
+            AND visit_score >= 0.25,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_low,
+        CAST(SUM(
+        IF
+            (visit_score < 0.25
+            AND visit_score >= 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_medium,
+        CAST(SUM(
+        IF
+            (visit_score < 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_high
+    FROM
+        poi_visits_table
+    WHERE
+        part_of_day IS NOT NULL
+    GROUP BY
+        part_of_day,
+        branded
+    UNION ALL
+    SELECT
+        s2_token,
+        publisher_id,
+        NULL AS part_of_day,
+        branded,
+        COUNT(DISTINCT device_id) AS d_devices_visits,
+        CAST(SUM(visit_score) AS INT64) AS n_visits,
+        AVG(visit_score_steps.opening) AS overlap_mean,
+        STRUCT(sum(visit_score_steps.original) as original,
+        sum(visit_score_steps.opening) as opening,
+        sum(visit_score_steps.weighted) as weighted,
+        sum(visit_score_steps.visit_share) as visit_share,
+        sum(visit_score_steps.daily_estimation) as daily_estimation,
+        sum(visit_score_steps.gtvm_factor) as gtvm_factor
+        ) visit_score_steps_sum,
+        STRUCT(1 as original,
+AVG(visit_score_steps.opening/NULLIF(visit_score_steps.original, 0)) as opening,
+AVG(visit_score_steps.weighted/NULLIF(visit_score_steps.opening, 0)) as weighted,
+AVG(visit_score_steps.visit_share/NULLIF(visit_score_steps.weighted, 0)) as visit_share,
+AVG(visit_score_steps.daily_estimation/NULLIF(visit_score_steps.visit_share, 0)) as daily_estimation,
+AVG(visit_score_steps.gtvm_factor/NULLIF(visit_score_steps.daily_estimation, 0)) as gtvm_factor
+) factor_steps_avg,
+        CAST(SUM(
+        IF
+            (visit_score > 0.75,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_none,
+        CAST(SUM(
+        IF
+            (visit_score < 0.75
+            AND visit_score >= 0.25,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_low,
+        CAST(SUM(
+        IF
+            (visit_score < 0.25
+            AND visit_score >= 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_medium,
+        CAST(SUM(
+        IF
+            (visit_score < 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_high
+    FROM
+        poi_visits_table
+    GROUP BY
+        s2_token,
+        branded,
+        publisher_id
+    UNION ALL
+    SELECT
+        NULL AS s2_token,
+        publisher_id,
+        NULL AS part_of_day,
+        branded,
+        COUNT(DISTINCT device_id) AS d_devices_visits,
+        CAST(SUM(visit_score) AS INT64) AS n_visits,
+        AVG(visit_score_steps.opening) AS overlap_mean,
+        STRUCT(sum(visit_score_steps.original) as original,
+        sum(visit_score_steps.opening) as opening,
+        sum(visit_score_steps.weighted) as weighted,
+        sum(visit_score_steps.visit_share) as visit_share,
+        sum(visit_score_steps.daily_estimation) as daily_estimation,
+        sum(visit_score_steps.gtvm_factor) as gtvm_factor
+        ) visit_score_steps_sum,
+        STRUCT(1 as original,
+AVG(visit_score_steps.opening/NULLIF(visit_score_steps.original, 0)) as opening,
+AVG(visit_score_steps.weighted/NULLIF(visit_score_steps.opening, 0)) as weighted,
+AVG(visit_score_steps.visit_share/NULLIF(visit_score_steps.weighted, 0)) as visit_share,
+AVG(visit_score_steps.daily_estimation/NULLIF(visit_score_steps.visit_share, 0)) as daily_estimation,
+AVG(visit_score_steps.gtvm_factor/NULLIF(visit_score_steps.daily_estimation, 0)) as gtvm_factor
+) factor_steps_avg,
+        CAST(SUM(
+        IF
+            (visit_score > 0.75,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_none,
+        CAST(SUM(
+        IF
+            (visit_score < 0.75
+            AND visit_score >= 0.25,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_low,
+        CAST(SUM(
+        IF
+            (visit_score < 0.25
+            AND visit_score >= 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_medium,
+        CAST(SUM(
+        IF
+            (visit_score < 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_high
+    FROM
+        poi_visits_table
+    GROUP BY
+        publisher_id,
+        branded
+    UNION ALL
+    SELECT
+        s2_token,
+        NULL AS publisher_id,
+        NULL AS part_of_day,
+        branded,
+        COUNT(DISTINCT device_id) AS d_devices_visits,
+        CAST(SUM(visit_score) AS INT64) AS n_visits,
+        AVG(visit_score_steps.opening) AS overlap_mean,
+        STRUCT(sum(visit_score_steps.original) as original,
+        sum(visit_score_steps.opening) as opening,
+        sum(visit_score_steps.weighted) as weighted,
+        sum(visit_score_steps.visit_share) as visit_share,
+        sum(visit_score_steps.daily_estimation) as daily_estimation,
+        sum(visit_score_steps.gtvm_factor) as gtvm_factor
+        ) visit_score_steps_sum,
+        STRUCT(1 as original,
+AVG(visit_score_steps.opening/NULLIF(visit_score_steps.original, 0)) as opening,
+AVG(visit_score_steps.weighted/NULLIF(visit_score_steps.opening, 0)) as weighted,
+AVG(visit_score_steps.visit_share/NULLIF(visit_score_steps.weighted, 0)) as visit_share,
+AVG(visit_score_steps.daily_estimation/NULLIF(visit_score_steps.visit_share, 0)) as daily_estimation,
+AVG(visit_score_steps.gtvm_factor/NULLIF(visit_score_steps.daily_estimation, 0)) as gtvm_factor
+) factor_steps_avg,
+        CAST(SUM(
+        IF
+            (visit_score > 0.75,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_none,
+        CAST(SUM(
+        IF
+            (visit_score < 0.75
+            AND visit_score >= 0.25,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_low,
+        CAST(SUM(
+        IF
+            (visit_score < 0.25
+            AND visit_score >= 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_medium,
+        CAST(SUM(
+        IF
+            (visit_score < 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_high
+    FROM
+        poi_visits_table
+    GROUP BY
+        s2_token,
+        branded
+    UNION ALL
+    SELECT
+        NULL AS s2_token,
+        NULL AS publisher_id,
+        NULL AS part_of_day,
+        branded,
+        COUNT(DISTINCT device_id) AS d_devices_visits,
+        CAST(SUM(visit_score) AS INT64) AS n_visits,
+        AVG(visit_score_steps.opening) AS overlap_mean,
+        STRUCT(sum(visit_score_steps.original) as original,
+        sum(visit_score_steps.opening) as opening,
+        sum(visit_score_steps.weighted) as weighted,
+        sum(visit_score_steps.visit_share) as visit_share,
+        sum(visit_score_steps.daily_estimation) as daily_estimation,
+        sum(visit_score_steps.gtvm_factor) as gtvm_factor
+        ) visit_score_steps_sum,
+        STRUCT(1 as original,
+AVG(visit_score_steps.opening/NULLIF(visit_score_steps.original, 0)) as opening,
+AVG(visit_score_steps.weighted/NULLIF(visit_score_steps.opening, 0)) as weighted,
+AVG(visit_score_steps.visit_share/NULLIF(visit_score_steps.weighted, 0)) as visit_share,
+AVG(visit_score_steps.daily_estimation/NULLIF(visit_score_steps.visit_share, 0)) as daily_estimation,
+AVG(visit_score_steps.gtvm_factor/NULLIF(visit_score_steps.daily_estimation, 0)) as gtvm_factor
+) factor_steps_avg,
+        CAST(SUM(
+        IF
+            (visit_score > 0.75,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_none,
+        CAST(SUM(
+        IF
+            (visit_score < 0.75
+            AND visit_score >= 0.25,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_low,
+        CAST(SUM(
+        IF
+            (visit_score < 0.25
+            AND visit_score >= 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_medium,
+        CAST(SUM(
+        IF
+            (visit_score < 0.05,
+            visit_score,
+            NULL)) AS INT64) AS n_visits_overlap_high
+    FROM
+        poi_visits_table
+    GROUP BY branded)
+    SELECT DATE('%s') as local_date,
+    s2_token,
+    publisher_id,
+    part_of_day,
+    d_devices_visits,
+    n_visits,
+    overlap_mean,
+    STRUCT(visit_score_steps_sum.original as original, 
+    visit_score_steps_sum.weighted as weighted, 
+    visit_score_steps_sum.opening as opening,
+    visit_score_steps_sum.visit_share AS visit_share,
+    visit_score_steps_sum.daily_estimation AS daily_estimation,
+    visit_score_steps_sum.gtvm_factor as gtvm_factor) as visit_score_steps_sum,
+    STRUCT(factor_steps_avg.original as original, 
+    factor_steps_avg.weighted as weighted, 
+    factor_steps_avg.opening as opening,
+    factor_steps_avg.visit_share AS visit_share,
+    factor_steps_avg.daily_estimation AS daily_estimation,
+    factor_steps_avg.gtvm_factor as gtvm_factor) as factor_steps_avg,
+    n_visits_overlap_none,
+    n_visits_overlap_low,
+    n_visits_overlap_medium,
+    n_visits_overlap_high,
+    branded
+    FROM
+    visits_table_all
+""",
+FORMAT_DATE('%Y-%m-%d',d))
+);
+END;

@@ -1,0 +1,72 @@
+CREATE OR REPLACE PROCEDURE `storage-prod-olvin-com.procedures.trend_visits`(
+    destination_table STRING,
+    input_table STRING
+)
+OPTIONS(
+   description="""Calculate some trend visit metrics"""
+ )
+BEGIN
+
+EXECUTE IMMEDIATE CONCAT(FORMAT("""
+CREATE OR REPLACE TABLE
+ `%s`
+PARTITION BY local_date CLUSTER BY group_id
+AS
+WITH
+ org_table AS
+(
+SELECT *, DENSE_RANK() OVER (PARTITION BY group_id ORDER BY week) AS week_number
+FROM
+      (
+        SELECT group_id, local_date, y, (EXTRACT(ISOYEAR FROM local_date)-2018)*53 + EXTRACT(WEEK FROM local_date) AS week,
+        max(local_date) over (partition by group_id) AS max_date, min(local_date) over (partition by group_id) AS min_date
+        FROM
+        `%s`
+      )
+
+),
+
+target_table AS (
+  SELECT
+        group_id,
+        local_date,
+        SUM(visit_score_28) / GREATEST(1, SUM(norm_value_28)) AS y_trend,
+      FROM
+        (
+          SELECT
+            CASE
+              WHEN days_difference < 0 THEN DATE_SUB(local_date, INTERVAL - days_difference DAY)
+              WHEN days_difference > 0 THEN DATE_ADD(local_date, INTERVAL days_difference DAY)
+              ELSE local_date
+            END AS local_date,
+            max_date, min_date,
+            group_id,
+            y * (
+              0.5 + 0.5 * COS(days_difference * ACOS(-1) / 28)
+            ) AS visit_score_28,
+            (
+              0.5 + 0.5 * COS(days_difference * ACOS(-1) / 28)
+            ) AS norm_value_28,
+          FROM
+            org_table
+            CROSS JOIN UNNEST(
+              GENERATE_ARRAY(
+                - 28,
+                28,
+                1
+              )
+            ) AS days_difference
+        )
+        WHERE local_date >= min_date AND local_date <= max_date
+      GROUP BY
+        group_id,
+        local_date
+)
+
+select target_table.*, org_table.y
+from org_table
+left join target_table
+using (group_id, local_date)
+""",
+destination_table, input_table));
+END
