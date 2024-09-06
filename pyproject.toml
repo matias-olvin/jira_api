@@ -6,7 +6,7 @@ authors = ["Kartikey Mullick <kartikey@olvin.com>"]
 readme = "README.md"
 
 [tool.ruff]
-output-format = "github" # ideal for github
+output-format = "github" # ideal for github action
 
 # match black
 line-length = 150
@@ -19,9 +19,10 @@ lint.select = [
     "C4",  # flake8-comprehensions
     "PL",  # pylint
     "RUF", # ruff-specific rules
+    "D",   # pydocstyle
 ]
 lint.ignore = [
-    #### specific rules to ignore
+    #### specific rules to ignore (interal and recommended by ruff)
     "E501",     # Line too long ignore
     "E203",     # Added to avoid conflict of codes
     "E117",     # Over indented
@@ -31,14 +32,18 @@ lint.ignore = [
     "ISC002",   # Multi line implicit string concatenation
 ]
 
+# Set airflow package as first party to treat any imports from "airflow" as internal
 lint.isort.known-first-party = [
     "airflow"
 ]
 
+# Makes the definition of the DAG immutable. Error thrown -> B018: DAG object modified outside of its definition
 lint.flake8-bugbear.extend-immutable-calls = [
     "airflow.models.DAG"
 ]
 
+# This setting will enable rules that are compatible with
+# Google-style docstrings and disable rules that conflict with this style.
 lint.pydocstyle.convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
