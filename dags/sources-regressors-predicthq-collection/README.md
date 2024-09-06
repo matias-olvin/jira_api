@@ -1,3 +1,0 @@
-README
-
-## PredictHQ events collection

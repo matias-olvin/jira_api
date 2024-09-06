@@ -1,5 +1,0 @@
-create or replace table `{{ var.value.env_project }}.{{ params['regressors_dataset'] }}.{{ params['holidays_dictionary_table'] }}` copy `{{ params['sns_project'] }}.{{ params['accessible_by_olvin_dataset'] }}.{{ params['regressors_dataset'] }}_{{ params['holidays_dictionary_table'] }}`;
-create or replace table `{{ var.value.env_project }}.{{ params['regressors_dataset'] }}.{{ params['holidays_dictionary_zipcode_table'] }}` copy `{{ params['sns_project'] }}.{{ params['accessible_by_olvin_dataset'] }}.{{ params['regressors_dataset'] }}_{{ params['holidays_dictionary_zipcode_table'] }}`;
-
-create or replace table `{{ var.value.env_project }}.{{ params['events_dataset'] }}.{{ params['holidays_dictionary_table'] }}` copy `{{ params['sns_project'] }}.{{ params['accessible_by_olvin_dataset'] }}.{{ params['events_dataset'] }}_{{ params['holidays_dictionary_table'] }}`;
-create or replace table `{{ var.value.env_project }}.{{ params['events_dataset'] }}.{{ params['holidays_dictionary_zipcode_table'] }}` copy `{{ params['sns_project'] }}.{{ params['accessible_by_olvin_dataset'] }}.{{ params['events_dataset'] }}_{{ params['holidays_dictionary_zipcode_table'] }}`;

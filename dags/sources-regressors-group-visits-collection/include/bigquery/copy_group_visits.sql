@@ -1,2 +1,0 @@
-CREATE OR REPLACE TABLE
-    `{{ var.value.env_project }}.{{ params['regressors_dataset'] }}.{{ params['group_residuals_collection_table'] }}` COPY `{{ params['sns_project'] }}.{{ params['accessible_by_olvin_dataset'] }}.{{ params['regressors_dataset'] }}_{{ params['group_residuals_collection_table'] }}`;

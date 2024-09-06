@@ -1,1 +1,0 @@
-CREATE OR REPLACE TABLE `{{ params['project'] }}.{{ params['daily_estimation_dataset'] }}.{{ params['daily_factor_table'] }}` COPY `{{ params['sns_project'] }}.{{ params['accessible_by_olvin_dataset'] }}.{{ params['daily_estimation_dataset'] }}_{{ params['daily_factor_table'] }}`;

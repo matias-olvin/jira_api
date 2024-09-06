@@ -1,1 +1,0 @@
-CREATE OR REPLACE TABLE `{{ var.value.env_project }}.{{ params['smc_quality_dataset'] }}.{{ params['model_input_complete_table'] }}` LIKE `{{ var.value.env_project }}.{{ params['quality_dataset'] }}.{{ params['model_input_complete_table'] }}`

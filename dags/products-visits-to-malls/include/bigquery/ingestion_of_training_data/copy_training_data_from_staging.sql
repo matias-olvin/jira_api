@@ -1,2 +1,0 @@
-CREATE OR REPLACE TABLE
-    `{{ var.value.env_project }}.{{ params['visits_to_malls_dataset'] }}.{{ params['visits_to_malls_training_data_table'] }}` COPY `{{ var.value.env_project }}.{{ params['visits_to_malls_staging_dataset'] }}.{{ params['visits_to_malls_training_data_table'] }}`;

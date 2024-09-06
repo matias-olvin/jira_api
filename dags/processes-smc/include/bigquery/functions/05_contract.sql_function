@@ -1,4 +1,0 @@
-CREATE OR REPLACE FUNCTION `storage-prod-olvin-com.functions.contract`(arr any type ) as ((
-  select to_json_string(array_agg(ifnull(visits,-1) respect nulls order by hour))
-  from unnest(arr)
-));
